@@ -36,6 +36,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 |------|------|----------|
 | [爱奇艺签到](iqiyi/iqiyi_checkin.py) | VIP成长值、抽奖、摇一摇 | `IQIYI_COOKIE` |
 | [百度贴吧签到](tieba/tieba.py) | 自动签到所有关注的贴吧 | `TIEBA_COOKIE` |
+| [百度网盘签到](baiduwp/baiduwp.py) | 成长值签到、每日答题、会员查询 | `BAIDUWP_COOKIES` |
 
 ## ⚙️ 环境变量配置
 
@@ -53,6 +54,12 @@ git clone https://github.com/tianyathomas/autoscripts.git
 |--------|------|----------|
 | `TIEBA_COOKIE` | 百度贴吧 BDUSS Cookie | 浏览器登录百度贴吧后，F12 开发者工具 → Application → Cookies → 找到 BDUSS 值 |
 
+### 百度网盘签到
+
+| 变量名 | 说明 | 获取方式 |
+|--------|------|----------|
+| `BAIDUWP_COOKIES` | 百度网盘 Cookie，多账号用 `#` 分隔 | 浏览器登录百度网盘后，F12 开发者工具 → Network → 任意请求 → Headers → Cookie。建议保留 `BDUSS`、`STOKEN`、`BAIDUID` 三个字段即可。 |
+
 ## 📝 使用说明
 
 1. 拉取仓库后，脚本会自动出现在定时任务列表
@@ -66,6 +73,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 |------|----------|-------------|
 | 爱奇艺签到 | 每天凌晨 | `5 0 * * *` |
 | 百度贴吧签到 | 每天早上 | `0 8 * * *` |
+| 百度网盘签到 | 每天早上 | `0 9 * * *` |
 
 ## 🤝 贡献
 
