@@ -1,17 +1,16 @@
-/**
+/*
  * 爱奇艺 Cookie 自动保活脚本
- * 
+ *
  * 功能:
  * - 定期访问爱奇艺 API 保持登录状态
  * - 延长 Cookie 有效期
  * - 发送过期提醒
- * 
+ *
  * 青龙面板配置:
  * 变量名: IQIYI_COOKIE
- * 
- * cron: 0 6,18 * * *
- * new Env('爱奇艺保活');
  */
+// cron: 0 6,18 * * *
+// new Env('爱奇艺保活')
 
 const https = require('https');
 const http = require('http');

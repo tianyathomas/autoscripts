@@ -1,24 +1,23 @@
-/**
+/*
  * 爱奇艺自动签到脚本 (青龙面板版)
- * 
+ *
  * 功能:
  * - VIP 等级/成长值查询
  * - 每天摇一摇抽奖
  * - 白金抽奖
  * - V7 免费升级星钻
  * - 普通抽奖活动
- * 
+ *
  * 青龙面板配置:
  * 变量名: IQIYI_COOKIE
  * 变量值: P00001=xxx; P00002=xxx; P00003=xxx; __dfp=xxx; QC005=xxx;
- * 
+ *
  * 多账号配置:
  * IQIYI_COOKIE 用换行符分隔多个 Cookie，或使用:
  * IQIYI_COOKIE_1, IQIYI_COOKIE_2, ...
- * 
- * cron: 0 8 * * *
- * new Env('爱奇艺签到');
  */
+// cron: 0 8 * * *
+// new Env('爱奇艺签到')
 
 const https = require('https');
 const http = require('http');
