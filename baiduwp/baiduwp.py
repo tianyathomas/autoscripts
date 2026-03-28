@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ===========================
 # 百度网盘签到答题
-# 青龙面板任务名称: 百度网盘签到答题
-# ===========================
 import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
