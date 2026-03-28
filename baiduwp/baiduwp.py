@@ -1,6 +1,6 @@
 """
 百度网盘签到脚本 - 青龙面板适配版
-环境变量: BAIDUWP_COOKIES
+环境变量: BD_COOKIE
 cron: 0 9 * * *
 new Env('百度网盘签到答题');
 """
@@ -147,17 +147,16 @@ def load_cookies() -> list:
     """从环境变量或配置文件加载cookie"""
     cookies = []
     
-    # 优先从环境变量读取 BAIDUWP_COOKIES
-    env_cookies = os.getenv("BAIDUWP_COOKIES", "")
-    if env_cookies:
-        # 支持 # 分隔多账号
-        cookies.extend([c.strip() for c in env_cookies.split("#") if c.strip()])
+    # 优先从环境变量读取 BD_COOKIE（百度系通用）
+    bd_cookie = os.getenv("BD_COOKIE", "")
+    if bd_cookie:
+        cookies.append(bd_cookie)
     
-    # 备选：支持 TIEBA_COOKIE（贴吧cookie也可以用于网盘）
+    # 备选：从 BAIDUWP_COOKIES 读取（多账号用 # 分隔）
     if not cookies:
-        tieba_cookie = os.getenv("TIEBA_COOKIE", "")
-        if tieba_cookie:
-            cookies.append(tieba_cookie)
+        env_cookies = os.getenv("BAIDUWP_COOKIES", "")
+        if env_cookies:
+            cookies.extend([c.strip() for c in env_cookies.split("#") if c.strip()])
     
     # 备选从配置文件读取
     if not cookies:

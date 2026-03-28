@@ -1,6 +1,6 @@
 """
 百度贴吧签到脚本 - 青龙面板版
-环境变量: TIEBA_COOKIE
+环境变量: BD_COOKIE
 cron: 0 8 * * *
 new Env('百度贴吧签到');
 """
@@ -337,11 +337,11 @@ class Tieba:
 
 if __name__ == "__main__":
     # 从环境变量获取 Cookie
-    cookie = os.environ.get("TIEBA_COOKIE", "")
+    cookie = os.environ.get("BD_COOKIE", "")
 
     if not cookie:
-        print("[TIEBA] 未设置环境变量 TIEBA_COOKIE，请先在青龙面板添加")
-        sendNotify("百度贴吧签到失败", "未设置环境变量 TIEBA_COOKIE")
+        print("[TIEBA] 未设置环境变量 BD_COOKIE，请先在青龙面板添加")
+        sendNotify("百度贴吧签到失败", "未设置环境变量 BD_COOKIE")
         exit(1)
 
     print("[TIEBA] 开始执行百度贴吧签到任务...")
