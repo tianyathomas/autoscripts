@@ -16,8 +16,8 @@
  * IQIYI_COOKIE 用换行符分隔多个 Cookie，或使用:
  * IQIYI_COOKIE_1, IQIYI_COOKIE_2, ...
  */
-// cron: 0 8 * * *
-// new Env('爱奇艺签到')
+const cron = "0 8 * * *"
+const name = "爱奇艺签到"
 
 const https = require('https');
 const http = require('http');

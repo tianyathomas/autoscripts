@@ -9,8 +9,8 @@
  * 青龙面板配置:
  * 变量名: IQIYI_COOKIE
  */
-// cron: 0 6,18 * * *
-// new Env('爱奇艺保活')
+const cron = "0 6,18 * * *"
+const name = "爱奇艺保活"
 
 const https = require('https');
 const http = require('http');
