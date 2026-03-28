@@ -35,6 +35,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | 脚本 | 说明 | 环境变量 |
 |------|------|----------|
 | [爱奇艺签到](iqiyi/iqiyi_checkin.py) | VIP成长值、抽奖、摇一摇 | `IQIYI_COOKIE` |
+| [百度贴吧签到](tieba/tieba.py) | 自动签到所有关注的贴吧 | `TIEBA_COOKIE` |
 
 ## ⚙️ 环境变量配置
 
@@ -45,6 +46,12 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | 变量名 | 说明 | 获取方式 |
 |--------|------|----------|
 | `IQIYI_COOKIE` | 爱奇艺完整 Cookie | 浏览器登录爱奇艺后，F12 开发者工具 → Network → 任意请求 → Headers → Cookie |
+
+### 百度贴吧签到
+
+| 变量名 | 说明 | 获取方式 |
+|--------|------|----------|
+| `TIEBA_COOKIE` | 百度贴吧 BDUSS Cookie | 浏览器登录百度贴吧后，F12 开发者工具 → Application → Cookies → 找到 BDUSS 值 |
 
 ## 📝 使用说明
 
@@ -58,6 +65,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | 脚本 | 建议时间 | Cron 表达式 |
 |------|----------|-------------|
 | 爱奇艺签到 | 每天凌晨 | `5 0 * * *` |
+| 百度贴吧签到 | 每天早上 | `0 8 * * *` |
 
 ## 🤝 贡献
 
