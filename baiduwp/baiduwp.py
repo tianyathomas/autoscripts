@@ -64,16 +64,14 @@ class BaiduWP:
         url = "https://pan.baidu.com/act/v2/membergrowv2/getdailyquestion?app_id=250528&web=5"
         try:
             resp = self.session.get(url, headers=self.headers, timeout=10)
-            print(f"DEBUG答题响应: {resp.text[:200]}")
             if resp.status_code == 200:
                 data = resp.json()
                 # 检查是否已有答案或无法答题
                 if data.get("data", {}).get("answer_status") == -1:
-                    print("DEBUG: 今日已答题")
                     return None, None
                 return data.get("data", {}).get("ask_id"), data.get("data", {}).get("answer")
         except Exception as e:
-            print(f"DEBUG答题异常: {e}")
+            pass
         return None, None
 
     def answer_question(self, ask_id: int, answer: int) -> tuple:
@@ -93,12 +91,12 @@ class BaiduWP:
         url = "https://pan.baidu.com/rest/2.0/membership/user?app_id=250528&web=5&method=query"
         try:
             resp = self.session.get(url, headers=self.headers, timeout=10)
-            print(f"DEBUG用户响应: {resp.text}")
             if resp.status_code == 200:
                 data = resp.json()
-                # 尝试多个可能的字段路径
-                level = data.get("current_level") or data.get("data", {}).get("current_level")
-                value = data.get("current_value") or data.get("data", {}).get("current_value")
+                # 数据在 level_info 里
+                level_info = data.get("level_info", {})
+                level = level_info.get("current_level")
+                value = level_info.get("current_value")
                 return level, value
         except Exception as e:
             print(f"DEBUG用户异常: {e}")
@@ -114,7 +112,6 @@ class BaiduWP:
         
         # 获取并回答问题
         ask_id, answer = self.get_question()
-        print(f"DEBUG答题: ask_id={ask_id}, answer={answer}")
         answer_score, answer_msg = None, ""
         
         if ask_id and answer is not None:
