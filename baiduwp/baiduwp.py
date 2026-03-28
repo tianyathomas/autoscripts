@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 百度网盘签到脚本 - 青龙面板适配版
 环境变量: BAIDUWP_COOKIES
