@@ -5,6 +5,8 @@
   "scripts": {
     "test": "node iqiyi/iqiyi_ql.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "cron-parser": "2.18.0"
+  },
   "devDependencies": {}
 }
