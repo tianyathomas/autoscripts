@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# 百度网盘签到答题
+"""
+百度网盘签到脚本 - 青龙面板适配版
+环境变量: BAIDUWP_COOKIES
+cron: 0 9 * * *
+new Env('百度网盘签到答题');
+"""
 import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
