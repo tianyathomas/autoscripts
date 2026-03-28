@@ -62,7 +62,10 @@ class BaiduWP:
             resp = self.session.get(url, headers=self.headers, timeout=10)
             if resp.status_code == 200:
                 data = resp.json()
-                return data.get("ask_id"), data.get("answer")
+                # 检查是否已有答案或无法答题
+                if data.get("data", {}).get("answer_status") == -1:
+                    return None, None
+                return data.get("data", {}).get("ask_id"), data.get("data", {}).get("answer")
         except Exception as e:
             pass
         return None, None
