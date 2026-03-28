@@ -108,6 +108,7 @@ class BaiduWP:
         
         # 获取并回答问题
         ask_id, answer = self.get_question()
+        print(f"DEBUG答题: ask_id={ask_id}, answer={answer}")
         answer_score, answer_msg = None, ""
         
         if ask_id and answer is not None:
@@ -117,6 +118,7 @@ class BaiduWP:
         # 获取用户信息
         time.sleep(1)
         current_level, current_value = self.get_userinfo()
+        print(f"DEBUG用户: level={current_level}, value={current_value}")
         
         # 格式化输出
         msg_parts = []
