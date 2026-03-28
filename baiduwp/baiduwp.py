@@ -147,11 +147,17 @@ def load_cookies() -> list:
     """从环境变量或配置文件加载cookie"""
     cookies = []
     
-    # 优先从环境变量读取
+    # 优先从环境变量读取 BAIDUWP_COOKIES
     env_cookies = os.getenv("BAIDUWP_COOKIES", "")
     if env_cookies:
         # 支持 # 分隔多账号
         cookies.extend([c.strip() for c in env_cookies.split("#") if c.strip()])
+    
+    # 备选：支持 TIEBA_COOKIE（贴吧cookie也可以用于网盘）
+    if not cookies:
+        tieba_cookie = os.getenv("TIEBA_COOKIE", "")
+        if tieba_cookie:
+            cookies.append(tieba_cookie)
     
     # 备选从配置文件读取
     if not cookies:
