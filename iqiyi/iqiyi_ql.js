@@ -1,27 +1,48 @@
 /*
- * 爱奇艺自动签到脚本 (青龙面板版)
- *
- * 功能:
- * - VIP 等级/成长值查询
- * - 每天摇一摇抽奖
- * - 白金抽奖
- * - V7 免费升级星钻
- * - 普通抽奖活动
- *
- * 青龙面板配置:
- * 变量名: IQIYI_COOKIE
- * 变量值: P00001=xxx; P00002=xxx; P00003=xxx; __dfp=xxx; QC005=xxx;
- *
- * 多账号配置:
- * IQIYI_COOKIE 用换行符分隔多个 Cookie，或使用:
- * IQIYI_COOKIE_1, IQIYI_COOKIE_2, ...
+cron 0 8 * * *
+爱奇艺自动签到脚本
+
+变量: IQIYI_COOKIE
+格式: P00001=xxx; P00002=xxx; P00003=xxx;
  */
-const cron = "0 8 * * *"
-const name = "爱奇艺签到"
 
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
+
+// 青龙面板 Env 类兼容
+function Env(name) {
+    this.name = name;
+    this.data = {};
+    this.logs = [];
+}
+Env.prototype.log = function(msg) { console.log(msg); this.logs.push(msg); };
+Env.prototype.msg = function(title, subtitle, message) { 
+    console.log(`\n========== ${title} ==========`);
+    if (subtitle) console.log(subtitle);
+    if (message) console.log(message);
+};
+Env.prototype.getdata = function(key) { return this.data[key]; };
+Env.prototype.setdata = function(val, key) { this.data[key] = val; };
+Env.prototype.get = function(key, def) { return process.env[key] || def; };
+Env.prototype.set = function(key, val) { process.env[key] = val; return val; };
+Env.prototype.done = function() { console.log('\n执行完成'); };
+Env.prototype.time = function(fmt) {
+    const d = new Date();
+    const o = {
+        'M+': d.getMonth() + 1, 'd+': d.getDate(), 'h+': d.getHours(),
+        'm+': d.getMinutes(), 's+': d.getSeconds()
+    };
+    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (d.getFullYear() + '').substr(4 - RegExp.$1.length));
+    for (const k in o) {
+        if (new RegExp('(' + k + ')').test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)));
+        }
+    }
+    return fmt;
+};
+
+const $ = new Env('爱奇艺签到')
 
 // ============ 青龙面板兼容 ============
 
