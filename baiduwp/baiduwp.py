@@ -64,14 +64,16 @@ class BaiduWP:
         url = "https://pan.baidu.com/act/v2/membergrowv2/getdailyquestion?app_id=250528&web=5"
         try:
             resp = self.session.get(url, headers=self.headers, timeout=10)
+            print(f"DEBUG答题响应: {resp.text[:200]}")
             if resp.status_code == 200:
                 data = resp.json()
                 # 检查是否已有答案或无法答题
                 if data.get("data", {}).get("answer_status") == -1:
+                    print("DEBUG: 今日已答题")
                     return None, None
                 return data.get("data", {}).get("ask_id"), data.get("data", {}).get("answer")
         except Exception as e:
-            pass
+            print(f"DEBUG答题异常: {e}")
         return None, None
 
     def answer_question(self, ask_id: int, answer: int) -> tuple:
@@ -91,11 +93,12 @@ class BaiduWP:
         url = "https://pan.baidu.com/rest/2.0/membership/user?app_id=250528&web=5&method=query"
         try:
             resp = self.session.get(url, headers=self.headers, timeout=10)
+            print(f"DEBUG用户响应: {resp.text[:300]}")
             if resp.status_code == 200:
                 data = resp.json()
                 return data.get("current_level"), data.get("current_value")
         except Exception as e:
-            pass
+            print(f"DEBUG用户异常: {e}")
         return None, None
 
     def main(self) -> str:
