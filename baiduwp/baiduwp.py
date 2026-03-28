@@ -93,10 +93,13 @@ class BaiduWP:
         url = "https://pan.baidu.com/rest/2.0/membership/user?app_id=250528&web=5&method=query"
         try:
             resp = self.session.get(url, headers=self.headers, timeout=10)
-            print(f"DEBUG用户响应: {resp.text[:300]}")
+            print(f"DEBUG用户响应: {resp.text}")
             if resp.status_code == 200:
                 data = resp.json()
-                return data.get("current_level"), data.get("current_value")
+                # 尝试多个可能的字段路径
+                level = data.get("current_level") or data.get("data", {}).get("current_level")
+                value = data.get("current_value") or data.get("data", {}).get("current_value")
+                return level, value
         except Exception as e:
             print(f"DEBUG用户异常: {e}")
         return None, None
