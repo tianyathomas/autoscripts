@@ -39,8 +39,7 @@ WSKEY 格式：`pin=xxx:wskey=xxx;`
 ### 2. 创建定时任务
 
 - 命令：`python3 /ql/scripts/wskey/wskey.py`
-- 建议定时：`0 11 1,11,21 * *`（每月1日、11日、21日）
-
+- 
 ## 注意事项
 
 - WSKEY 有时效性，需定期转换
