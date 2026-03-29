@@ -12,13 +12,13 @@
 
 ## 环境变量
 
-| 变量名 | 说明 | 必填 |
-|--------|------|------|
-| `JD_WSCK` | 京东 WSKEY，格式：`pin=xxx:wskey=xxx;`，多个用 `&` 分隔 | 是 |
-| `QL_PORT` | 青龙面板端口，默认 5700 | 否 |
-| `WSKEY_SLEEP` | 重试间隔秒数，默认 10 | 否 |
-| `WSKEY_TRY_COUNT` | 重试次数，默认 1 | 否 |
-| `WSKEY_UPDATE_HOUR` | 更新间隔小时 | 否 |
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `JD_WSCK` | 京东 WSKEY，格式：`pin=xxx:wskey=xxx;`，多个用 `&` 分隔 | 必填 |
+| `QL_PORT` | 青龙面板端口 | 5700 |
+| `WSKEY_SLEEP` | 账号间隔秒数（避免风控） | 30 |
+| `WSKEY_TRY_COUNT` | 转换失败重试次数 | 1 |
+| `WSKEY_UPDATE_HOUR` | 更新间隔小时数 | 23 |
 | `WSKEY_AUTO_DISABLE` | 失效自动禁用 | 否 |
 
 ## 获取 WSKEY
