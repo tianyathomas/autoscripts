@@ -584,7 +584,7 @@ if __name__ == '__main__':
     ql_id = check_id()
     wslist = get_wskey()
     envlist = get_env()
-    sleepTime = int(os.environ.get("WSKEY_SLEEP", "10") if str(os.environ.get("WSKEY_SLEEP")).isdigit() else "10")
+    sleepTime = int(os.environ.get("WSKEY_SLEEP", "30") if str(os.environ.get("WSKEY_SLEEP")).isdigit() else "30")
     tryCount = int(os.environ.get("WSKEY_TRY_COUNT", "1") if str(os.environ.get("WSKEY_TRY_COUNT")).isdigit() else "1")
     WSKEY_UPDATE_BOOL = bool(os.environ.get("WSKEY_UPDATE_HOUR"))
     WSKEY_AUTO_DISABLE = bool(os.environ.get("WSKEY_AUTO_DISABLE"))
