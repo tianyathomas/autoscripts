@@ -3,7 +3,7 @@
 """
 wskey转换脚本 - 青龙面板版
 环境变量: JD_WSCK, QL_PORT
-cron: 0 11 1,11,21 * *
+cron: 0 9 * * *
 new Env('wskey转换');
 """
 import base64
