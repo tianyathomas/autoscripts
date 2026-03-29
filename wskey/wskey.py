@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 wskey转换脚本 - 青龙面板版
 环境变量: JD_WSCK, QL_PORT
