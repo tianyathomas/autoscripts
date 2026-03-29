@@ -37,6 +37,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | [爱奇艺签到](iqiyi/iqiyi_checkin.py) | VIP成长值、抽奖、摇一摇 | `IQIYI_COOKIE` |
 | [百度贴吧签到](tieba/tieba.py) | 自动签到所有关注的贴吧 | `BD_COOKIE` |
 | [百度网盘签到](baiduwp/baiduwp.py) | 成长值签到、每日答题、会员查询 | `BD_COOKIE` |
+| [WSKEY转换](wskey/wskey.py) | 京东 WSKEY 转 JD Cookie | `JD_WSCK` |
 
 ## ⚙️ 环境变量配置
 
@@ -68,6 +69,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | 爱奇艺签到 | 每天凌晨 | `5 0 * * *` |
 | 百度贴吧签到 | 每天早上 | `0 8 * * *` |
 | 百度网盘签到 | 每天早上 | `0 9 * * *` |
+| WSKEY转换 | 每天早上 | `0 9 * * *` |
 
 ## 🤝 贡献
 
