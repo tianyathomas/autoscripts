@@ -44,10 +44,9 @@ class FnNasClubCheckIn:
             match = pattern.search(html)
 
             sign_time = None
-            # 已签到时，提取签到时间
+            # 已签到时，提取签到时间（格式：最近打卡：2026-03-30 20:57:56）
             if "今日已打卡" in html:
-                # 尝试从页面提取签到时间，格式如 "打卡时间：2026-03-30 21:02:34"
-                time_match = re.search(r"打卡时间[：:]\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})", html)
+                time_match = re.search(r"最近打卡[：:]\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})", html)
                 if time_match:
                     sign_time = time_match.group(1).strip()
                 return match.group(1) if match else None, True, sign_time
@@ -94,38 +93,27 @@ class FnNasClubCheckIn:
             response.raise_for_status()
             html = response.text
 
-            # 匹配"我的打卡动态"区块
-            pattern = re.compile(
-                r"<strong>\s*我的打卡动态\s*</strong>"
-                r".*?"
-                r'<div[^>]*class="bm_c"[^>]*>.*?</div>',
-                re.S
-            )
+            # 匹配用户打卡信息区块 <ul class="xl xl1">
+            pattern = re.compile(r'<ul class="xl xl1">(.+?)</ul>', re.S)
             match = pattern.search(html)
 
             if not match:
+                info.append({"name": "提示", "value": "未获取到用户打卡信息，请检查cookie是否包含有效用户"})
                 return info
 
-            block_html = match.group(0)
+            block_html = match.group(1)
 
-            # 规范化处理
-            block_html = re.sub(r"</li\s*>", "</li>\n", block_html)
-            text = re.sub(r"<[^>]+>", "", block_html)
-            text = text.replace("我的打卡动态", "")
+            # 提取每个 <li> 里的内容
+            li_pattern = re.compile(r"<li>([^<]+)</li>")
+            for li_match in li_pattern.finditer(block_html):
+                text = li_match.group(1).strip()
+                # 格式：名称：值
+                if "：" in text:
+                    name, value = text.split("：", 1)
+                    info.append({"name": name.strip(), "value": value.strip()})
 
-            # 解析每行信息
-            lines = [line.strip() for line in text.splitlines() if line.strip()]
-            for line in lines:
-                # 兼容全角和半角冒号
-                if "：" in line:
-                    sep = "："
-                elif ":" in line:
-                    sep = ":"
-                else:
-                    continue
-
-                name, value = line.split(sep, 1)
-                info.append({"name": name.strip(), "value": value.strip()})
+            if not info:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
 
         except Exception as e:
             info.append({"name": "获取信息失败", "value": str(e)})
