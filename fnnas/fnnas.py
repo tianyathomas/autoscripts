@@ -1,0 +1,177 @@
+"""
+cron: 30 6 * * *
+new Env('飞牛论坛签到');
+"""
+
+import os
+import re
+import requests
+
+# ============ 环境变量配置 ============
+# FNNAS_COOKIE: 飞牛NAS论坛完整cookie字符串（必填）
+
+
+class FnNasClubCheckIn:
+    name = "飞牛NAS论坛"
+
+    def __init__(self):
+        self.cookie_str = os.getenv("FNNAS_COOKIE", "")
+
+        if not self.cookie_str:
+            raise ValueError("未设置环境变量 FNNAS_COOKIE，请先配置")
+
+        # 初始化session
+        self.session = requests.Session()
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Referer": "https://club.fnnas.com/portal.php",
+            "Content-Type": "text/html; charset=utf-8",
+        })
+        self.session.headers["Cookie"] = self.cookie_str
+
+    def get_sign_param(self):
+        """访问签到页面，提取sign参数"""
+        url = "https://club.fnnas.com/plugin.php?id=zqlj_sign"
+        try:
+            response = self.session.get(url, timeout=15)
+            response.raise_for_status()
+            html = response.text
+
+            # 匹配签到按钮中的sign参数（点击打卡 或 今日已打卡）
+            pattern = re.compile(r'<a href="plugin\.php\?id=zqlj_sign&sign=([0-9a-fA-F]+)"')
+            match = pattern.search(html)
+
+            if match:
+                sign_param = match.group(1)
+                # 判断是否已签到
+                if "今日已打卡" in html:
+                    return sign_param, True  # 已签到
+                elif "点击打卡" in html:
+                    return sign_param, False  # 未签到
+
+            return None, False
+        except Exception as e:
+            print(f"[获取签到参数] 异常: {e}")
+            return None, False
+
+    def sign(self, sign_param):
+        """执行签到"""
+        if not sign_param:
+            return False, "签到失败，未能获取sign参数"
+
+        url = f"https://club.fnnas.com/plugin.php?id=zqlj_sign&sign={sign_param}"
+        try:
+            response = self.session.get(url, timeout=15)
+            response.raise_for_status()
+            html = response.text
+
+            if "恭喜您，打卡成功" in html:
+                return True, "签到成功"
+            elif "您今天已经打过卡了" in html or "今日已打卡" in html:
+                return True, "今日已签到"
+            else:
+                # 尝试提取错误信息
+                error_match = re.search(r'<div[^>]*class="alert_error"[^>]*>(.*?)</div>', html, re.S)
+                if error_match:
+                    return False, f"签到失败: {error_match.group(1).strip()}"
+                return False, "签到失败，未知原因"
+        except Exception as e:
+            return False, f"签到异常: {e}"
+
+    def get_info(self):
+        """获取打卡动态信息"""
+        url = "https://club.fnnas.com/plugin.php?id=zqlj_sign"
+        info = []
+
+        try:
+            response = self.session.get(url, timeout=15)
+            response.raise_for_status()
+            html = response.text
+
+            # 匹配"我的打卡动态"区块
+            pattern = re.compile(
+                r"<strong>\s*我的打卡动态\s*</strong>"
+                r".*?"
+                r'<div[^>]*class="bm_c"[^>]*>.*?</div>',
+                re.S
+            )
+            match = pattern.search(html)
+
+            if not match:
+                return info
+
+            block_html = match.group(0)
+
+            # 规范化处理
+            block_html = re.sub(r"</li\s*>", "</li>\n", block_html)
+            text = re.sub(r"<[^>]+>", "", block_html)
+            text = text.replace("我的打卡动态", "")
+
+            # 解析每行信息
+            lines = [line.strip() for line in text.splitlines() if line.strip()]
+            for line in lines:
+                # 兼容全角和半角冒号
+                if "：" in line:
+                    sep = "："
+                elif ":" in line:
+                    sep = ":"
+                else:
+                    continue
+
+                name, value = line.split(sep, 1)
+                info.append({"name": name.strip(), "value": value.strip()})
+
+        except Exception as e:
+            info.append({"name": "获取信息失败", "value": str(e)})
+
+        return info
+
+    def main(self):
+        """主函数"""
+        print("=" * 40)
+        print("【飞牛NAS论坛签到任务开始】")
+        print("=" * 40)
+
+        # 获取签到参数
+        sign_param, already_signed = self.get_sign_param()
+
+        if sign_param is None:
+            print("[签到] 获取sign参数失败，请检查cookie是否有效")
+            print("=" * 40)
+            return
+
+        if already_signed:
+            print("[签到] 今日已签到")
+            sign_success, sign_msg = True, "今日已签到"
+        else:
+            # 执行签到
+            sign_success, sign_msg = self.sign(sign_param)
+            print(f"[签到] {sign_msg}")
+
+        # 获取打卡信息
+        print()
+        print("【打卡动态】")
+        info = self.get_info()
+        for item in info:
+            print(f"{item['name']}: {item['value']}")
+
+        # 汇总
+        print()
+        print("=" * 40)
+        print("【任务执行完成】")
+        print("=" * 40)
+        print(f"签到结果: {sign_msg}")
+        for item in info:
+            print(f"{item['name']}: {item['value']}")
+        print("=" * 40)
+
+
+if __name__ == "__main__":
+    try:
+        checkin = FnNasClubCheckIn()
+        checkin.main()
+    except Exception as e:
+        print(f"[FAIL] 执行失败: {e}")
+        import traceback
+        traceback.print_exc()

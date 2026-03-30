@@ -35,6 +35,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | 脚本 | 说明 | 环境变量 |
 |------|------|----------|
 | [B站签到](bilibili/bilibili.py) | 直播签到、漫画签到、投币、观看分享任务 | `BILIBILI_COOKIE` |
+| [飞牛论坛签到](fnnas/fnnas.py) | 飞牛NAS论坛每日打卡签到 | `FNNAS_COOKIE` |
 | [爱奇艺签到](iqiyi/iqiyi_checkin.py) | VIP成长值、抽奖、摇一摇 | `IQIYI_COOKIE` |
 | [百度贴吧签到](tieba/tieba.py) | 自动签到所有关注的贴吧 | `BD_COOKIE` |
 | [百度网盘签到](baiduwp/baiduwp.py) | 成长值签到、每日答题、会员查询 | `BD_COOKIE` |
@@ -52,6 +53,12 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | `BILIBILI_COIN_NUM` | 每日投币数量（可选） | 默认 `5` |
 | `BILIBILI_COIN_TYPE` | 投币类型（可选） | `1`=关注UP主视频，其他=分区视频，默认 `1` |
 | `BILIBILI_SILVER2COIN` | 银瓜子换硬币（可选） | `true`/`false`，默认 `false` |
+
+### 飞牛论坛签到
+
+| 变量名 | 说明 | 获取方式 |
+|--------|------|----------|
+| `FNNAS_COOKIE` | 飞牛NAS论坛完整 Cookie | 浏览器登录飞牛论坛后，F12 开发者工具 → Network → 任意请求 → Headers → Cookie |
 
 ### 爱奇艺签到
 
@@ -77,6 +84,7 @@ git clone https://github.com/tianyathomas/autoscripts.git
 | 脚本 | 建议时间 | Cron 表达式 |
 |------|----------|-------------|
 | B站签到 | 每天 6:00 | `0 6 * * *` |
+| 飞牛论坛签到 | 每天 6:30 | `30 6 * * *` |
 | 爱奇艺签到 | 每天凌晨 | `5 0 * * *` |
 | 百度贴吧签到 | 每天早上 | `0 8 * * *` |
 | 百度网盘签到 | 每天早上 | `0 9 * * *` |
