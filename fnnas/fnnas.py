@@ -93,20 +93,21 @@ class FnNasClubCheckIn:
             response.raise_for_status()
             html = response.text
 
-            # 查找包含"最近打卡"的ul区块
-            # 先找到包含该文本的位置
-            if "最近打卡" not in html:
+            # 找到"我的打卡动态"标题的位置，往后找最近的<ul>标签
+            header_key = "我的打卡动态"
+            if header_key not in html:
                 info.append({"name": "提示", "value": "未获取到用户打卡信息，请检查cookie是否包含有效用户"})
                 return info
 
-            # 往前找<ul，往后找</ul>
-            start = html.rfind("<ul", 0, html.find("最近打卡"))
-            end = html.find("</ul>", html.find("最近打卡"))
-            if start == -1 or end == -1:
+            # 从标题位置往后找到第一个<ul>
+            header_pos = html.find(header_key)
+            ul_start = html.find("<ul", header_pos)
+            ul_end = html.find("</ul>", ul_start)
+            if ul_start == -1 or ul_end == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
-            block_html = html[start:end + 5]
+            block_html = html[ul_start:ul_end + 5]
 
             # 提取每个 <li> 里的内容
             li_pattern = re.compile(r"<li>([^<]+)</li>")
