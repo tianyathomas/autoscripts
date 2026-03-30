@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*
 '''
 new Env('wskey转换');
 cron: 0 9 * * *
