@@ -32,6 +32,32 @@
 
 > ⚠️ 注意：cookie 字符串较长，确保复制完整，不要有换行
 
+## Cookie 必需字段
+
+`BILIBILI_COOKIE` 需包含以下关键字段才能正常运行：
+
+| 字段名 | 说明 | 必需 |
+|--------|------|------|
+| `SESSDATA` | 登录凭证，最重要 | ✅ 必需 |
+| `bili_jct` | CSRF Token，用于POST请求 | ✅ 必需 |
+| `DedeUserID` | 用户ID | ✅ 必需 |
+| `buvid3` | 设备标识 | 建议有 |
+| `buvid4` | 设备标识 | 建议有 |
+
+### 最小 Cookie 示例
+
+```
+SESSDATA=xxx; bili_jct=xxx; DedeUserID=xxx; buvid3=xxx; buvid4=xxx
+```
+
+### 完整 Cookie 示例
+
+```
+buvid3=xxx; buvid4=xxx; SESSDATA=xxx; bili_jct=xxx; DedeUserID=xxx; DedeUserID__ckMd5=xxx; sid=xxx; ...
+```
+
+> 💡 建议：直接复制浏览器中的完整 Cookie 字符串，脚本会自动解析所需字段
+
 ## 定时任务
 
 脚本默认每天 6:00 执行，cron 表达式：`0 6 * * *`
