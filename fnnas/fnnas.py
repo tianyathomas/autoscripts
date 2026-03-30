@@ -17,6 +17,7 @@ class FnNasClubCheckIn:
 
     def __init__(self):
         self.cookie_str = os.getenv("FNNAS_COOKIE", "")
+        self.html_cache = None  # 缓存签到页HTML
 
         if not self.cookie_str:
             raise ValueError("未设置环境变量 FNNAS_COOKIE，请先配置")
@@ -37,14 +38,15 @@ class FnNasClubCheckIn:
         try:
             response = self.session.get(url, timeout=15)
             response.raise_for_status()
-            html = response.text
+            self.html_cache = response.text  # 缓存HTML
+            html = self.html_cache
 
             # 匹配签到按钮中的sign参数（点击打卡 或 今日已打卡）
             pattern = re.compile(r'<a href="plugin\.php\?id=zqlj_sign&sign=([0-9a-fA-F]+)"')
             match = pattern.search(html)
 
             sign_time = None
-            # 已签到时，提取签到时间（格式：最近打卡：2026-03-30 20:57:56）
+            # 已签到时，提取签到时间
             if "今日已打卡" in html:
                 time_match = re.search(r"最近打卡[：:]\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})", html)
                 if time_match:
@@ -75,7 +77,6 @@ class FnNasClubCheckIn:
             elif "您今天已经打过卡了" in html or "今日已打卡" in html:
                 return True, "今日已签到", None
             else:
-                # 尝试提取错误信息
                 error_match = re.search(r'<div[^>]*class="alert_error"[^>]*>(.*?)</div>', html, re.S)
                 if error_match:
                     return False, f"签到失败: {error_match.group(1).strip()}", None
@@ -84,31 +85,24 @@ class FnNasClubCheckIn:
             return False, f"签到异常: {e}", None
 
     def get_info(self):
-        """获取打卡动态信息"""
+        """获取打卡动态信息（复用get_sign_param缓存的HTML）"""
         info = []
-        url = "https://club.fnnas.com/plugin.php?id=zqlj_sign"
+        html = self.html_cache  # 复用缓存的HTML
+
+        if not html:
+            info.append({"name": "提示", "value": "打卡信息需登录后查看"})
+            return info
 
         try:
-            response = self.session.get(url, timeout=15)
-            response.raise_for_status()
-            html = response.text
-
-            # 用"打卡等级"定位：打卡等级是"我的打卡动态"的下一个bm
-            # 从打卡等级往前找<ul>就是"我的打卡动态"的ul
             level_key = "打卡等级"
-            if level_key not in html:
+            header_key = "我的打卡动态"
+
+            if level_key not in html or header_key not in html:
                 info.append({"name": "提示", "value": "打卡信息需登录后查看"})
                 return info
 
             level_pos = html.find(level_key)
-            # 往前找到"我的打卡动态"之后的那个<ul>
-            header_key = "我的打卡动态"
-            if header_key not in html:
-                info.append({"name": "提示", "value": "打卡信息需登录后查看"})
-                return info
-
             header_pos = html.find(header_key)
-            # 在"我的打卡动态"和"打卡等级"之间找第一个<ul>
             between_html = html[header_pos:level_pos]
             ul_start_in_between = between_html.find("<ul")
             if ul_start_in_between == -1:
