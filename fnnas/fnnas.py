@@ -148,6 +148,7 @@ class FnNasClubCheckIn:
 
         if already_signed:
             print("[签到] 今日已签到")
+            sign_msg = "今日已签到"
             if sign_time:
                 print(f"[签到时间] {sign_time}")
         else:
