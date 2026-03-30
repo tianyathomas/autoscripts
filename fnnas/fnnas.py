@@ -85,20 +85,19 @@ class FnNasClubCheckIn:
             return False, f"签到异常: {e}", None
 
     def get_info(self):
-        """获取打卡动态信息（复用get_sign_param缓存的HTML）"""
+        """获取打卡动态信息"""
         info = []
-        html = self.html_cache  # 复用缓存的HTML
+        html = self.html_cache
 
         if not html:
-            info.append({"name": "提示", "value": "打卡信息需登录后查看"})
             return info
 
         try:
+            # 尝试解析打卡信息（青龙可能拿到不完整页面）
             level_key = "打卡等级"
             header_key = "我的打卡动态"
 
             if level_key not in html or header_key not in html:
-                info.append({"name": "提示", "value": "打卡信息需登录后查看"})
                 return info
 
             level_pos = html.find(level_key)
@@ -106,13 +105,11 @@ class FnNasClubCheckIn:
             between_html = html[header_pos:level_pos]
             ul_start_in_between = between_html.find("<ul")
             if ul_start_in_between == -1:
-                info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
             actual_ul_start = header_pos + ul_start_in_between
             ul_end = html.find("</ul>", actual_ul_start)
             if ul_end == -1:
-                info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
             block_html = html[actual_ul_start:ul_end + 5]
@@ -124,11 +121,8 @@ class FnNasClubCheckIn:
                     name, value = text.split("：", 1)
                     info.append({"name": name.strip(), "value": value.strip()})
 
-            if not info:
-                info.append({"name": "提示", "value": "打卡信息需登录后查看"})
-
-        except Exception as e:
-            info.append({"name": "获取信息失败", "value": str(e)})
+        except Exception:
+            pass
 
         return info
 
