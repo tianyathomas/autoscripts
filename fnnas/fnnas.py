@@ -93,12 +93,27 @@ class FnNasClubCheckIn:
             response.raise_for_status()
             html = response.text
 
-            header_key = "我的打卡动态"
-            if header_key not in html:
-                info.append({"name": "提示", "value": "未获取到用户打卡信息"})
+            # 尝试多个可能的中文字符串
+            for header_key in ["我的打卡动态", "我的打卡", "打卡动态"]:
+                if header_key in html:
+                    break
+            else:
+                # 中文都找不到，试试英文锚点
+                if "打卡等级" in html:
+                    # 打卡等级在"我的打卡动态"之后，找打卡等级之前最近的ul
+                    level_pos = html.find("打卡等级")
+                    bm_c_pos = html.rfind('<div class="bm_c">', 0, level_pos)
+                    if bm_c_pos != -1:
+                        ul_start = html.find("<ul", bm_c_pos)
+                        ul_end = html.find("</ul>", ul_start)
+                        if ul_start != -1 and ul_end != -1:
+                            block_html = html[ul_start:ul_end]
+                            info.append({"name": "提示", "value": "打卡信息需登录后查看"})
+                            return info
+                info.append({"name": "提示", "value": "未获取到用户打卡信息，请检查cookie是否有效"})
                 return info
 
-            # 从"我的打卡动态"位置往后，跳过 bm_c div，找到其中的 ul
+            # 从"我的打卡动态"位置往后找bm_c里的ul
             header_pos = html.find(header_key)
             bm_c_pos = html.find('<div class="bm_c">', header_pos)
             if bm_c_pos == -1:
