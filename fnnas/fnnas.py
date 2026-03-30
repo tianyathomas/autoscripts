@@ -93,25 +93,34 @@ class FnNasClubCheckIn:
             response.raise_for_status()
             html = response.text
 
-            # 从"我的打卡动态"标题往后，找bm_c div里的ul
+            # 定位到 sd 侧边栏区域
+            sd_start = html.find('<div class="sd">')
+            sd_end = html.find("</div>\n</div>\n</div>", sd_start)
+            if sd_start == -1 or sd_end == -1:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
+                return info
+
+            sd_html = html[sd_start:sd_end]
+
+            # 在sd区域里找"我的打卡动态"之后第一个bm_c里的ul
             header_key = "我的打卡动态"
-            if header_key not in html:
+            if header_key not in sd_html:
                 info.append({"name": "提示", "value": "未获取到用户打卡信息，请检查cookie是否包含有效用户"})
                 return info
 
-            header_pos = html.find(header_key)
-            bm_c_pos = html.find('<div class="bm_c">', header_pos)
+            header_pos = sd_html.find(header_key)
+            bm_c_pos = sd_html.find('<div class="bm_c">', header_pos)
             if bm_c_pos == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
-            ul_start = html.find("<ul", bm_c_pos)
-            ul_end = html.find("</ul>", ul_start)
+            ul_start = sd_html.find("<ul", bm_c_pos)
+            ul_end = sd_html.find("</ul>", ul_start)
             if ul_start == -1 or ul_end == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
-            block_html = html[ul_start:ul_end + 5]
+            block_html = sd_html[ul_start:ul_end + 5]
 
             # 提取每个 <li> 里的内容
             li_pattern = re.compile(r"<li>([^<]+)</li>")
