@@ -93,33 +93,52 @@ class FnNasClubCheckIn:
             return info
 
         try:
-            # 尝试解析打卡信息（青龙可能拿到不完整页面）
+            # 优先从"我的打卡动态"区块提取
             level_key = "打卡等级"
             header_key = "我的打卡动态"
 
-            if level_key not in html or header_key not in html:
-                return info
+            if level_key in html and header_key in html:
+                level_pos = html.find(level_key)
+                header_pos = html.find(header_key)
+                between_html = html[header_pos:level_pos]
+                ul_start_in_between = between_html.find("<ul")
+                if ul_start_in_between != -1:
+                    actual_ul_start = header_pos + ul_start_in_between
+                    ul_end = html.find("</ul>", actual_ul_start)
+                    if ul_end != -1:
+                        block_html = html[actual_ul_start:ul_end + 5]
+                        li_pattern = re.compile(r"<li>([^<]+)</li>")
+                        for li_match in li_pattern.finditer(block_html):
+                            text = li_match.group(1).strip()
+                            if "：" in text:
+                                name, value = text.split("：", 1)
+                                info.append({"name": name.strip(), "value": value.strip()})
+                        if info:
+                            return info
 
-            level_pos = html.find(level_key)
-            header_pos = html.find(header_key)
-            between_html = html[header_pos:level_pos]
-            ul_start_in_between = between_html.find("<ul")
-            if ul_start_in_between == -1:
-                return info
-
-            actual_ul_start = header_pos + ul_start_in_between
-            ul_end = html.find("</ul>", actual_ul_start)
-            if ul_end == -1:
-                return info
-
-            block_html = html[actual_ul_start:ul_end + 5]
-
-            li_pattern = re.compile(r"<li>([^<]+)</li>")
-            for li_match in li_pattern.finditer(block_html):
-                text = li_match.group(1).strip()
-                if "：" in text:
-                    name, value = text.split("：", 1)
-                    info.append({"name": name.strip(), "value": value.strip()})
+            # 如果主页面没有，尝试访问"我的记录"tab
+            try:
+                response = self.session.get(
+                    "https://club.fnnas.com/plugin.php?id=zqlj_sign&tb=my",
+                    timeout=15
+                )
+                html2 = response.text
+                if header_key in html2:
+                    header_pos2 = html2.find(header_key)
+                    bm_c_pos = html2.find('<div class="bm_c">', header_pos2)
+                    if bm_c_pos != -1:
+                        ul_start = html2.find("<ul", bm_c_pos)
+                        ul_end = html2.find("</ul>", ul_start)
+                        if ul_start != -1 and ul_end != -1:
+                            block_html = html2[ul_start:ul_end + 5]
+                            li_pattern = re.compile(r"<li>([^<]+)</li>")
+                            for li_match in li_pattern.finditer(block_html):
+                                text = li_match.group(1).strip()
+                                if "：" in text:
+                                    name, value = text.split("：", 1)
+                                    info.append({"name": name.strip(), "value": value.strip()})
+            except Exception:
+                pass
 
         except Exception:
             pass
