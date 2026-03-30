@@ -86,62 +86,55 @@ class FnNasClubCheckIn:
     def get_info(self):
         """获取打卡动态信息"""
         info = []
+        url = "https://club.fnnas.com/plugin.php?id=zqlj_sign"
 
-        # 尝试多个可能的接口/页面
-        urls_to_try = [
-            "https://club.fnnas.com/plugin.php?id=zqlj_sign&tb=my",
-            "https://club.fnnas.com/plugin.php?id=zqlj_sign",
-        ]
+        try:
+            response = self.session.get(url, timeout=15)
+            response.raise_for_status()
+            html = response.text
 
-        html = None
-        for url in urls_to_try:
-            try:
-                response = self.session.get(url, timeout=15)
-                response.raise_for_status()
-                if "我的打卡" in response.text or "打卡动态" in response.text:
-                    html = response.text
-                    break
-            except Exception:
-                continue
+            # 用"打卡等级"定位：打卡等级是"我的打卡动态"的下一个bm
+            # 从打卡等级往前找<ul>就是"我的打卡动态"的ul
+            level_key = "打卡等级"
+            if level_key not in html:
+                info.append({"name": "提示", "value": "打卡信息需登录后查看"})
+                return info
 
-        if not html:
-            info.append({"name": "提示", "value": "打卡信息需登录后查看"})
-            return info
+            level_pos = html.find(level_key)
+            # 往前找到"我的打卡动态"之后的那个<ul>
+            header_key = "我的打卡动态"
+            if header_key not in html:
+                info.append({"name": "提示", "value": "打卡信息需登录后查看"})
+                return info
 
-        # 用"打卡等级"之前最近的bm_c来定位"我的打卡动态"区块
-        # 打卡等级之前有3个bm，第二个是"我的打卡动态"
-        level_pos = html.find("打卡等级")
-        if level_pos == -1:
-            info.append({"name": "提示", "value": "打卡信息需登录后查看"})
-            return info
+            header_pos = html.find(header_key)
+            # 在"我的打卡动态"和"打卡等级"之间找第一个<ul>
+            between_html = html[header_pos:level_pos]
+            ul_start_in_between = between_html.find("<ul")
+            if ul_start_in_between == -1:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
+                return info
 
-        # 从后往前找，找到第二个bm_c之前的位置
-        pos = level_pos
-        bm_c_positions = []
-        while True:
-            idx = html.rfind('<div class="bm_c">', 0, pos)
-            if idx == -1:
-                break
-            bm_c_positions.append(idx)
-            pos = idx
-        print(f"[调试] 找到 {len(bm_c_positions)} 个bm_c，找到打卡等级位置 {level_pos}")
+            actual_ul_start = header_pos + ul_start_in_between
+            ul_end = html.find("</ul>", actual_ul_start)
+            if ul_end == -1:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
+                return info
 
-        # 打卡等级前的第2个bm_c（索引1）
-        if len(bm_c_positions) >= 2:
-            target_bm_c = bm_c_positions[1]  # 第2个（从0开始）
-            ul_start = html.find("<ul", target_bm_c)
-            ul_end = html.find("</ul>", ul_start)
-            if ul_start != -1 and ul_end != -1:
-                block_html = html[ul_start:ul_end + 5]
-                li_pattern = re.compile(r"<li>([^<]+)</li>")
-                for li_match in li_pattern.finditer(block_html):
-                    text = li_match.group(1).strip()
-                    if "：" in text:
-                        name, value = text.split("：", 1)
-                        info.append({"name": name.strip(), "value": value.strip()})
+            block_html = html[actual_ul_start:ul_end + 5]
 
-        if not info:
-            info.append({"name": "提示", "value": "打卡信息需登录后查看"})
+            li_pattern = re.compile(r"<li>([^<]+)</li>")
+            for li_match in li_pattern.finditer(block_html):
+                text = li_match.group(1).strip()
+                if "：" in text:
+                    name, value = text.split("：", 1)
+                    info.append({"name": name.strip(), "value": value.strip()})
+
+            if not info:
+                info.append({"name": "提示", "value": "打卡信息需登录后查看"})
+
+        except Exception as e:
+            info.append({"name": "获取信息失败", "value": str(e)})
 
         return info
 
