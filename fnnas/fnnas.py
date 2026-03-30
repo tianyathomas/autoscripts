@@ -93,10 +93,16 @@ class FnNasClubCheckIn:
             response.raise_for_status()
             html = response.text
 
-            # 定位到 sd 侧边栏区域
+            # 定位到 sd 侧边栏区域（从sd开头到footer前的</div>）
             sd_start = html.find('<div class="sd">')
-            sd_end = html.find("</div>\n</div>\n</div>", sd_start)
-            if sd_start == -1 or sd_end == -1:
+            footer_start = html.find('<div id="footer">')
+            if sd_start == -1 or footer_start == -1:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
+                return info
+
+            # 从footer往前找</div>，这就是sd的结束位置
+            sd_end = html.rfind("</div>", 0, footer_start)
+            if sd_end == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
