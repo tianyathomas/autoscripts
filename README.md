@@ -4,8 +4,7 @@
 
 ## 🚀 青龙面板拉库方法
 
-### 方式一：订阅管理（推荐）
-
+### 订阅管理
 1. 青龙面板 → 订阅管理 → 新建订阅
 2. 填写以下信息：
    - **名称**：`autoscripts`
@@ -14,21 +13,6 @@
    - **分支**：`main`
    - **定时规则**：`0 0 * * *`（每天拉取一次）
 3. 保存后点击运行，即可自动拉取所有脚本
-
-### 方式二：手动添加仓库
-
-在青龙面板 → 定时任务 → 添加任务：
-
-```
-ql repo https://github.com/tianyathomas/autoscripts.git
-```
-
-### 方式三：SSH 命令行
-
-```bash
-cd /ql/scripts
-git clone https://github.com/tianyathomas/autoscripts.git
-```
 
 ## 📦 脚本列表
 
