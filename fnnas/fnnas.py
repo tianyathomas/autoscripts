@@ -93,16 +93,15 @@ class FnNasClubCheckIn:
             response.raise_for_status()
             html = response.text
 
-            # 定位到 sd 侧边栏区域（从sd开头到footer前的</div>）
+            # 定位到 sd 侧边栏区域
             sd_start = html.find('<div class="sd">')
             footer_start = html.find('<div id="footer">')
-            # 调试输出
             print(f"[调试] sd_start={sd_start}, footer_start={footer_start}")
             if sd_start == -1 or footer_start == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
-            # 从footer往前找</div>，这就是sd的结束位置
+            # 从footer往前找</div>
             sd_end = html.rfind("</div>", 0, footer_start)
             print(f"[调试] sd_end={sd_end}")
             if sd_end == -1:
@@ -112,28 +111,29 @@ class FnNasClubCheckIn:
             sd_html = html[sd_start:sd_end]
             print(f"[调试] sd_html长度={len(sd_html)}")
 
-            # 在sd区域里找"我的打卡动态"之后第一个bm_c里的ul
+            # 在sd区域找"我的打卡动态"
             header_key = "我的打卡动态"
-            print(f"[调试] 是否包含'我的打卡动态': {header_key in sd_html}")
+            print(f"[调试] 包含'我的打卡动态': {header_key in sd_html}")
             if header_key not in sd_html:
-                info.append({"name": "提示", "value": "未获取到用户打卡信息，请检查cookie是否包含有效用户"})
+                info.append({"name": "提示", "value": "未获取到用户打卡信息"})
                 return info
 
             header_pos = sd_html.find(header_key)
             bm_c_pos = sd_html.find('<div class="bm_c">', header_pos)
             print(f"[调试] bm_c_pos={bm_c_pos}")
+            if bm_c_pos == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
             ul_start = sd_html.find("<ul", bm_c_pos)
             ul_end = sd_html.find("</ul>", ul_start)
+            print(f"[调试] ul_start={ul_start}, ul_end={ul_end}")
             if ul_start == -1 or ul_end == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
             block_html = sd_html[ul_start:ul_end + 5]
 
-            # 提取每个 <li> 里的内容
             li_pattern = re.compile(r"<li>([^<]+)</li>")
             for li_match in li_pattern.finditer(block_html):
                 text = li_match.group(1).strip()
@@ -141,6 +141,7 @@ class FnNasClubCheckIn:
                     name, value = text.split("：", 1)
                     info.append({"name": name.strip(), "value": value.strip()})
 
+            print(f"[调试] 解析结果: {info}")
             if not info:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
 
