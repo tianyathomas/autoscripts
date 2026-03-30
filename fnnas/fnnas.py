@@ -5,6 +5,7 @@ new Env('飞牛论坛签到');
 
 import os
 import re
+import time
 import requests
 
 # ============ 环境变量配置 ============
@@ -58,7 +59,7 @@ class FnNasClubCheckIn:
     def sign(self, sign_param):
         """执行签到"""
         if not sign_param:
-            return False, "签到失败，未能获取sign参数"
+            return False, "签到失败，未能获取sign参数", None
 
         url = f"https://club.fnnas.com/plugin.php?id=zqlj_sign&sign={sign_param}"
         try:
@@ -67,17 +68,18 @@ class FnNasClubCheckIn:
             html = response.text
 
             if "恭喜您，打卡成功" in html:
-                return True, "签到成功"
+                sign_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                return True, "签到成功", sign_time
             elif "您今天已经打过卡了" in html or "今日已打卡" in html:
-                return True, "今日已签到"
+                return True, "今日已签到", None
             else:
                 # 尝试提取错误信息
                 error_match = re.search(r'<div[^>]*class="alert_error"[^>]*>(.*?)</div>', html, re.S)
                 if error_match:
-                    return False, f"签到失败: {error_match.group(1).strip()}"
-                return False, "签到失败，未知原因"
+                    return False, f"签到失败: {error_match.group(1).strip()}", None
+                return False, "签到失败，未知原因", None
         except Exception as e:
-            return False, f"签到异常: {e}"
+            return False, f"签到异常: {e}", None
 
     def get_info(self):
         """获取打卡动态信息"""
@@ -143,11 +145,13 @@ class FnNasClubCheckIn:
 
         if already_signed:
             print("[签到] 今日已签到")
-            sign_success, sign_msg = True, "今日已签到"
+            sign_success, sign_msg, sign_time = True, "今日已签到", None
         else:
             # 执行签到
-            sign_success, sign_msg = self.sign(sign_param)
+            sign_success, sign_msg, sign_time = self.sign(sign_param)
             print(f"[签到] {sign_msg}")
+            if sign_time:
+                print(f"[签到时间] {sign_time}")
 
         # 获取打卡信息
         print()
@@ -162,6 +166,8 @@ class FnNasClubCheckIn:
         print("【任务执行完成】")
         print("=" * 40)
         print(f"签到结果: {sign_msg}")
+        if sign_time:
+            print(f"签到时间: {sign_time}")
         for item in info:
             print(f"{item['name']}: {item['value']}")
         print("=" * 40)
