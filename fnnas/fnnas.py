@@ -32,7 +32,7 @@ class FnNasClubCheckIn:
         self.session.headers["Cookie"] = self.cookie_str
 
     def get_sign_param(self):
-        """访问签到页面，提取sign参数"""
+        """访问签到页面，提取sign参数和签到时间"""
         url = "https://club.fnnas.com/plugin.php?id=zqlj_sign"
         try:
             response = self.session.get(url, timeout=15)
@@ -43,18 +43,21 @@ class FnNasClubCheckIn:
             pattern = re.compile(r'<a href="plugin\.php\?id=zqlj_sign&sign=([0-9a-fA-F]+)"')
             match = pattern.search(html)
 
-            if match:
-                sign_param = match.group(1)
-                # 判断是否已签到
-                if "今日已打卡" in html:
-                    return sign_param, True  # 已签到
-                elif "点击打卡" in html:
-                    return sign_param, False  # 未签到
+            sign_time = None
+            # 已签到时，提取签到时间
+            if "今日已打卡" in html:
+                # 尝试从页面提取签到时间，格式如 "打卡时间：2026-03-30 21:02:34"
+                time_match = re.search(r"打卡时间[：:]\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})", html)
+                if time_match:
+                    sign_time = time_match.group(1).strip()
+                return match.group(1) if match else None, True, sign_time
+            elif "点击打卡" in html:
+                return match.group(1) if match else None, False, None
 
-            return None, False
+            return None, False, None
         except Exception as e:
             print(f"[获取签到参数] 异常: {e}")
-            return None, False
+            return None, False, None
 
     def sign(self, sign_param):
         """执行签到"""
@@ -136,7 +139,7 @@ class FnNasClubCheckIn:
         print("=" * 40)
 
         # 获取签到参数
-        sign_param, already_signed = self.get_sign_param()
+        sign_param, already_signed, sign_time = self.get_sign_param()
 
         if sign_param is None:
             print("[签到] 获取sign参数失败，请检查cookie是否有效")
@@ -145,7 +148,8 @@ class FnNasClubCheckIn:
 
         if already_signed:
             print("[签到] 今日已签到")
-            sign_success, sign_msg, sign_time = True, "今日已签到", None
+            if sign_time:
+                print(f"[签到时间] {sign_time}")
         else:
             # 执行签到
             sign_success, sign_msg, sign_time = self.sign(sign_param)
