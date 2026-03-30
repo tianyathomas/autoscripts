@@ -95,15 +95,17 @@ class FnNasClubCheckIn:
 
             # 定位到 sd 侧边栏区域
             sd_start = html.find('<div class="sd">')
-            footer_start = html.find('<div id="footer">')
-            print(f"[调试] sd_start={sd_start}, footer_start={footer_start}")
-            if sd_start == -1 or footer_start == -1:
+            if sd_start == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
 
-            # 从footer往前找</div>
-            sd_end = html.rfind("</div>", 0, footer_start)
-            print(f"[调试] sd_end={sd_end}")
+            # 找sd的结束位置：</div>\n</div>\n</div>
+            # 先找到最后一个</div>\n</div>（ct2的mn+sd外层），再往前找一个</div>
+            last_div = html.rfind("</div>\n</div>", sd_start)
+            if last_div == -1:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
+                return info
+            sd_end = html.rfind("</div>", 0, last_div + 10)
             if sd_end == -1:
                 info.append({"name": "提示", "value": "打卡信息解析失败"})
                 return info
