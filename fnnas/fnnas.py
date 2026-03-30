@@ -93,19 +93,25 @@ class FnNasClubCheckIn:
             response.raise_for_status()
             html = response.text
 
-            # 匹配"我的打卡动态"区块：标题 + bm_c 包裹的 ul
-            pattern = re.compile(
-                r"我的打卡动态\s*</div>\s*<div class=\"bm_c\">\s*"
-                r'(<ul class="xl xl1">.*?</ul>)',
-                re.S
-            )
-            match = pattern.search(html)
-
-            if not match:
+            # 从"我的打卡动态"标题往后，找bm_c div里的ul
+            header_key = "我的打卡动态"
+            if header_key not in html:
                 info.append({"name": "提示", "value": "未获取到用户打卡信息，请检查cookie是否包含有效用户"})
                 return info
 
-            block_html = match.group(1)
+            header_pos = html.find(header_key)
+            bm_c_pos = html.find('<div class="bm_c">', header_pos)
+            if bm_c_pos == -1:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
+                return info
+
+            ul_start = html.find("<ul", bm_c_pos)
+            ul_end = html.find("</ul>", ul_start)
+            if ul_start == -1 or ul_end == -1:
+                info.append({"name": "提示", "value": "打卡信息解析失败"})
+                return info
+
+            block_html = html[ul_start:ul_end + 5]
 
             # 提取每个 <li> 里的内容
             li_pattern = re.compile(r"<li>([^<]+)</li>")
