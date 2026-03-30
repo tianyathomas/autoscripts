@@ -25,21 +25,22 @@
 
 ## Cookie 必需字段
 
-`FNNAS_COOKIE` 需包含以下关键字段：
+`FNNAS_COOKIE` 需包含以下关键字段（飞牛论坛基于 Discuz 搭建）：
 
 | 字段名 | 说明 | 必需 |
 |--------|------|------|
 | `discuz_uid` | 用户ID | ✅ 必需 |
-| `discuz_pw` | 密码凭证 | ✅ 必需 |
+| `discuz_pw` | 密码凭证（加密后） | ✅ 必需 |
 | `discuz_sid` | 会话ID | ✅ 必需 |
+| `discuz_saltkey` | 加密盐值 | 建议有 |
 
 ### Cookie 示例
 
 ```
-discuz_uid=xxx; discuz_pw=xxx; discuz_sid=xxx; ...
+discuz_uid=12345; discuz_pw=abc123def456...; discuz_sid=xyz789; discuz_saltkey=randomkey
 ```
 
-> 💡 建议：直接复制浏览器中的完整 Cookie 字符串
+> 💡 建议：直接复制浏览器中的完整 Cookie 字符串，脚本会自动解析
 
 ## 定时任务
 
