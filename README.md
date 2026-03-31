@@ -1,87 +1,86 @@
-# Autoscripts 自动签到脚本合集
+# Autoscripts 自动签到脚本集合
 
-适用于青龙面板的各类签到脚本集合。
+> 实用的多平台自动签到脚本合集，支持青龙面板定时执行。
 
-## 🚀 青龙面板拉库方法
+## 📦 青龙面板配置方法
 
-### 订阅管理
-1. 青龙面板 → 订阅管理 → 新建订阅
-2. 填写以下信息：
+### 手动配置
+1. 打开青龙面板 → **定时任务** → **新建任务**
+2. 填写任务信息：
    - **名称**：`autoscripts`
-   - **类型**：公开仓库
-   - **链接**：`https://github.com/tianyathomas/autoscripts.git`
+   - **命令**：`ql repo https://github.com/tianyathomas/autoscripts.git`
    - **分支**：`main`
-   - **定时规则**：`0 0 * * *`（每天拉取一次）
-3. 保存后点击运行，即可自动拉取所有脚本
+   - **定时规则**：`0 0 * * *`（每天零点拉取一次）
+3. 保存任务，即可自动拉取所有脚本
 
-## 📦 脚本列表
+## 📋 脚本列表
 
 | 脚本 | 说明 | 环境变量 |
 |------|------|----------|
-| [B站签到](bilibili/bilibili.py) | 直播签到、漫画签到、投币、观看分享任务 | `BILIBILI_COOKIE` |
-| [飞牛论坛签到](fnnas/fnnas.py) | 飞牛NAS论坛每日打卡签到 | `FNNAS_COOKIE` |
-| [爱奇艺签到](iqiyi/iqiyi_checkin.py) | VIP成长值、抽奖、摇一摇 | `IQIYI_COOKIE` |
-| [百度贴吧签到](tieba/tieba.py) | 自动签到所有关注的贴吧 | `BD_COOKIE` |
-| [百度网盘签到](baiduwp/baiduwp.py) | 成长值签到、每日答题、会员查询 | `BD_COOKIE` |
-| [WSKEY转换](wskey/wskey.py) | 京东 WSKEY 转 JD Cookie | `JD_WSCK` |
+| [B站签到](bilibili/bilibili.py) | 直播签到、观看直播、投币、点赞、评论互动等 | `BILIBILI_COOKIE` |
+| [飞牛NAS签到](fnnas/fnnas.py) | 飞牛NAS论坛每日签到 | `FNNAS_COOKIE` |
+| [爱奇艺签到](iqiyi/iqiyi_checkin.py) | VIP成长值签到，看剧抽一抽 | `IQIYI_COOKIE` |
+| [百度贴吧签到](tieba/tieba.py) | 自动签到贴吧及关注贴吧列表 | `BD_COOKIE` |
+| [百度网盘签到](baiduwp/baiduwp.py) | 成长值签到，每日打卡、会员查询 | `BD_COOKIE` |
+| [WSKEY转换](wskey/wskey.py) | 将 WSKEY 转为 JD Cookie | `JD_WSCK` |
 
-## ⚙️ 环境变量配置
+## 🔧 环境变量配置说明
 
-在青龙面板 → 环境变量 中添加对应变量：
+以下为各脚本所需的环境变量，均在青龙面板 → **环境变量** 中添加。
 
 ### B站签到
 
 | 变量名 | 说明 | 获取方式 |
 |--------|------|----------|
-| `BILIBILI_COOKIE` | B站完整 Cookie | 浏览器登录B站后，F12 开发者工具 → Network → 任意请求 → Headers → Cookie |
+| `BILIBILI_COOKIE` | B站账号 Cookie | 浏览器登录B站，F12 开发者工具 → Network 选项 → 任意请求 → Headers → Cookie |
 | `BILIBILI_COIN_NUM` | 每日投币数量（可选） | 默认 `5` |
-| `BILIBILI_COIN_TYPE` | 投币类型（可选） | `1`=关注UP主视频，其他=分区视频，默认 `1` |
+| `BILIBILI_COIN_TYPE` | 投币类型（可选） | `1`=给已关注UP主投币，`2`=给热门视频投币，默认 `1` |
 | `BILIBILI_SILVER2COIN` | 银瓜子换硬币（可选） | `true`/`false`，默认 `false` |
 
-### 飞牛论坛签到
+### 飞牛NAS签到
 
 | 变量名 | 说明 | 获取方式 |
 |--------|------|----------|
-| `FNNAS_COOKIE` | 飞牛NAS论坛完整 Cookie | 浏览器登录飞牛论坛后，F12 开发者工具 → Network → 任意请求 → Headers → Cookie |
+| `FNNAS_COOKIE` | 飞牛NAS论坛登录 Cookie | 浏览器登录飞牛论坛，F12 开发者工具 → Network 选项 → 任意请求 → Headers → Cookie |
 
 ### 爱奇艺签到
 
 | 变量名 | 说明 | 获取方式 |
 |--------|------|----------|
-| `IQIYI_COOKIE` | 爱奇艺完整 Cookie | 浏览器登录爱奇艺后，F12 开发者工具 → Network → 任意请求 → Headers → Cookie |
+| `IQIYI_COOKIE` | 爱奇艺账号 Cookie | 浏览器登录爱奇艺后，F12 开发者工具 → Network 选项 → 任意请求 → Headers → Cookie |
 
 ### 百度系签到（贴吧+网盘）
 
 | 变量名 | 说明 | 获取方式 |
 |--------|------|----------|
-| `BD_COOKIE` | 百度系通用 Cookie（贴吧+网盘共用） | 浏览器登录百度任一产品后，F12 开发者工具 → Network → 任意请求 → Headers → Cookie |
+| `BD_COOKIE` | 百度系通用 Cookie（贴吧+网盘共用） | 浏览器登录百度任意产品，F12 开发者工具 → Network 选项 → 任意请求 → Headers → Cookie |
 
-## 📝 使用说明
+## 📖 使用说明
 
-1. 拉取仓库后，脚本会自动出现在定时任务列表
-2. 根据脚本需求配置对应的环境变量
+1. 拉取仓库后，脚本将自动出现在青龙面板的定时任务列表
+2. 根据脚本需求，在青龙面板添加对应的环境变量
 3. 手动运行一次测试是否正常
-4. 根据需要修改定时规则
+4. 根据需要修改定时任务的时间
 
-## 📅 定时建议
+## ⏰ 定时任务
 
-| 脚本 | 建议时间 | Cron 表达式 |
+| 脚本 | 执行时间 | Cron 表达式 |
 |------|----------|-------------|
 | B站签到 | 每天 6:00 | `0 6 * * *` |
-| 飞牛论坛签到 | 每天 6:30 | `30 6 * * *` |
-| 爱奇艺签到 | 每天凌晨 | `5 0 * * *` |
-| 百度贴吧签到 | 每天早上 | `0 8 * * *` |
-| 百度网盘签到 | 每天早上 | `0 9 * * *` |
-| WSKEY转换 | 每天早上 | `0 9 * * *` |
+| 飞牛NAS签到 | 每天 6:30 | `30 6 * * *` |
+| 爱奇艺签到 | 每天 0:05 | `5 0 * * *` |
+| 百度贴吧签到 | 每天 8:00 | `0 8 * * *` |
+| 百度网盘签到 | 每天 9:00 | `0 9 * * *` |
+| WSKEY转换 | 每天 9:00 | `0 9 * * *` |
 
 ## 🤝 贡献
 
-欢迎提交 Issue 或 PR 添加新的签到脚本。
+欢迎提交 Issue 或 PR，分享新的签到脚本！
 
 ## ⚠️ 免责声明
 
-本仓库脚本仅供学习交流使用，请勿用于商业用途。使用本仓库脚本所产生的一切后果由使用者自行承担。
+本仓库脚本仅供学习交流和个人使用。请勿滥用本仓库脚本，尊重各平台用户协议。使用本仓库脚本产生的一切后果由使用者自行承担。
 
-## 📜 License
+## 📄 License
 
 MIT License
