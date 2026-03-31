@@ -159,17 +159,11 @@ class FnNasClubCheckIn:
             print("=" * 40)
             return
 
-        if already_signed:
-            print("[签到] 今日已签到")
-            sign_msg = "今日已签到"
-            if sign_time:
-                print(f"[签到时间] {sign_time}")
-        else:
-            # 执行签到
-            sign_success, sign_msg, sign_time = self.sign(sign_param)
-            print(f"[签到] {sign_msg}")
-            if sign_time:
-                print(f"[签到时间] {sign_time}")
+        # 执行签到（无论是否已签到，都要发送请求）
+        sign_success, sign_msg, sign_time = self.sign(sign_param)
+        print(f"[签到] {sign_msg}")
+        if sign_time:
+            print(f"[签到时间] {sign_time}")
 
         # 获取打卡信息
         print()
