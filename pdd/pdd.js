@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * 拼多多果园自动化脚本 - 青龙面板版
  * 环境变量：PDD_COOKIE
@@ -254,19 +255,20 @@ def water_tree(max_times=50):
     
     for i in range(count):
         try:
-            resp = requests.post(url, cookies=COOKIE, headers=make_headers(), json={}, timeout=15)
+            resp = requests.post(url, cookies=COOKIE, headers=make_headers(ANTI_TOKEN), json={}, timeout=15)
             result = resp.json()
             if result.get('success'):
                 left = result.get('water', 0)
                 watered += 1
-                if i % 10 == 0:
-                    log(f'[Water] {watered}/{count}, left: {left}')
+                log(f'[Water] {watered}/{count}, left: {left}')
                 if left < 10:
                     break
                 time.sleep(0.2)
             else:
+                log(f'[Water] API response: {result}')
                 break
-        except:
+        except Exception as e:
+            log(f'[Water] Exception: {e}')
             break
     
     final = get_water()
@@ -278,12 +280,23 @@ def get_mission_list():
     url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/mission/list?pdduid={PDDUID}&is_back=1'
     data = {
         "activity_id_list": [201036],
-        "mission_types": [38160, 38242, 38090, 38451, 37859, 38428],
+        # 扩展任务类型覆盖更多任务（原有 + 补充常见类型）
+        "mission_types": [
+            38160, 38242, 38090, 38451, 37859, 38428,
+            38500, 38501, 38502, 38503, 38504, 38505,
+            38600, 38601, 38700, 38701, 38800, 38900,
+            37900, 37950, 38000, 38050, 38100, 38150
+        ],
         "request_params": {
             "act201036EntryInfo": {
+                "1": {"needRefresh": True},
+                "2": {"needRefresh": True},
+                "3": {"needRefresh": True},
                 "4": {"needRefresh": True},
                 "5": {"needRefresh": True},
-                "6": {"needRefresh": True}
+                "6": {"needRefresh": True},
+                "7": {"needRefresh": True},
+                "8": {"needRefresh": True}
             }
         },
         "lower_end_device": False,
@@ -308,13 +321,26 @@ def get_mission_list():
                             'desc': m.get('mission_desc', '')[:20]
                         })
             
+            # 打印所有任务及状态，便于分析可领取条件
+            status_map = {}
+            for t in tasks:
+                status_map[t['status']] = status_map.get(t['status'], 0) + 1
+            if tasks:
+                log(f'[Mission] Status distribution: {status_map}')
+                for t in tasks:
+                    log(f'  [status={t["status"]}] id={t["id"]}, reward={t["reward"]}, {t["desc"]}')
+            else:
+                log(f'[Mission] mission_list keys: {list(missions.keys())}')
+                log(f'[Mission] Raw response (truncated): {str(result)[:300]}')
+
             can_claim = [t for t in tasks if t['status'] == 250]
             log(f'[Mission] Total: {len(tasks)}, can claim: {len(can_claim)}')
             for t in can_claim:
-                log(f'  - {t["id"]}: reward={t["reward"]}, {t["desc"]}')
+                log(f'  -> Will claim: id={t["id"]}, reward={t["reward"]}, {t["desc"]}')
             return tasks
         else:
             log(f'[Mission] Error: {result.get("error_code")} - {result.get("error_msg", "")}')
+            log(f'[Mission] Full response (truncated): {str(result)[:300]}')
             return []
     except Exception as e:
         log(f'[Mission] Error: {e}')
