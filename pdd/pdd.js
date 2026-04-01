@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * 拼多多果园自动化脚本 - 青龙面板版
  * 环境变量：PDD_COOKIE
