@@ -226,26 +226,26 @@ def get_water():
         return 0
 
 def check_in():
-    log('[Sign] Checking in...')
+    log('[签到] 签到中...')
     url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/common/apply/activity?pdduid={PDDUID}&is_back=1'
     data = {"tubetoken": TUBETOKEN, "fun_pl": 2}
     try:
         resp = requests.post(url, cookies=COOKIE, headers=make_headers(), json=data, timeout=15)
         result = resp.json()
         if result.get('success'):
-            log(f'[Sign] Success! +{result.get("water_amount", 0)} water')
+            log(f'[签到] 成功！+{result.get("water_amount", 0)} 水滴')
             return True
-        log('[Sign] Already checked in today')
+        log('[签到] 今日已签到')
         return False
     except Exception as e:
-        log(f'[Sign] Error: {e}')
+        log(f'[签到] 错误：{e}')
         return False
 
 def water_tree(max_times=50):
     water = get_water()
-    log(f'[Water] Current: {water}')
+    log(f'[浇水] 当前水滴：{water}')
     if water < 10:
-        log('[Water] Not enough water')
+        log('[浇水] 水滴不足10颗，无法浇水')
         return 0
     
     url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/water/cost?pdduid={PDDUID}&is_back=1'
@@ -261,23 +261,23 @@ def water_tree(max_times=50):
             if left is not None and left < water:
                 water = left
                 watered += 1
-                log(f'[Water] {watered}/{count}, left: {left}')
+                log(f'[浇水] {watered}/{count}，剩余：{left}')
                 if left < 10:
                     break
                 time.sleep(0.2)
             else:
-                log(f'[Water] No water deducted, stopping. Response keys: {list(result.keys())[:8]}')
+                log(f'[浇水] 水滴未扣除，已停止。响应字段：{list(result.keys())[:8]}')
                 break
         except Exception as e:
-            log(f'[Water] Exception: {e}')
+            log(f'[浇水] 异常：{e}')
             break
     
     final = get_water()
-    log(f'[Water] Done! Watered {watered} times, final: {final}')
+    log(f'[浇水] 完成！浇水 {watered} 次，剩余水滴：{final}')
     return watered
 
 def get_mission_list():
-    log('[Mission] Fetching...')
+    log('[任务] 正在获取任务列表...')
     url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/mission/list?pdduid={PDDUID}&is_back=1'
     data = {
         "activity_id_list": [201036],
@@ -355,23 +355,23 @@ def get_mission_list():
             key = f"status={t['unified_status']}, draw={t['is_draw']}, open={t['is_open']}"
             status_map[key] = status_map.get(key, 0) + 1
         if tasks:
-            log(f'[Mission] Total: {len(tasks)}, can claim: {len(can_claim)}')
-            log(f'[Mission] Status breakdown: {status_map}')
+            log(f'[任务] 共 {len(tasks)} 个，可领取：{len(can_claim)}')
+            log(f'[任务] 状态分布：{status_map}')
             for t in tasks:
                 log(f"  [{t['unified_status']}] act={t['activity_id']} id={t['mission_id']} "
                     f"draw={t['is_draw']} open={t['is_open']} "
                     f"done={t['finished_count']}/{t['max_count']} "
                     f"reward={t['reward_amount']}{t['reward_type']}")
         else:
-            log(f'[Mission] activity_vo_map keys: {list(activity_map.keys())}')
-            log(f'[Mission] Full response keys: {list(result.keys())[:15]}')
+            log(f'[任务] activity_vo_map keys: {list(activity_map.keys())}')
+            log(f'[任务] 响应字段：{list(result.keys())[:15]}')
 
         for t in can_claim:
-            log(f'  -> Can claim: act={t["activity_id"]} id={t["mission_id"]} '
+            log(f'  -> 可领取：act={t["activity_id"]} id={t["mission_id"]} '
                 f'+{t["reward_amount"]}{t["reward_type"]}')
         return can_claim
     except Exception as e:
-        log(f'[Mission] Error: {e}')
+        log(f'[任务] 错误：{e}')
         return []
 
 def claim_mission(activity_id, mission_id):
@@ -381,20 +381,20 @@ def claim_mission(activity_id, mission_id):
         resp = requests.post(url, cookies=COOKIE, headers=make_headers(ANTI_TOKEN), json=data, timeout=15)
         result = resp.json()
         if result.get('success'):
-            log(f'[Mission] Claimed act={activity_id} id={mission_id}: '
-                f'+{result.get("water", result.get("reward_amount", 0))} water')
+            log(f'[任务] 领取成功 act={activity_id} id={mission_id}: '
+                f'+{result.get("water", result.get("reward_amount", 0))} 水滴')
             return True
         else:
-            log(f'[Mission] Claim act={activity_id} id={mission_id} failed: '
+            log(f'[任务] 领取失败 act={activity_id} id={mission_id}: '
                 f'{result.get("error_code")} - {result.get("error_msg", "")}')
             return False
     except Exception as e:
-        log(f'[Mission] Error: {e}')
+        log(f'[任务] 错误：{e}')
         return False
 
 # 主流程
 water = get_water()
-log(f'Water: {water}')
+log(f'当前水滴：{water}')
 
 check_in()
 time.sleep(0.5)
@@ -404,13 +404,13 @@ if water >= 10:
 
 can_claim = get_mission_list()
 if can_claim:
-    log(f'\\n[Mission] Claiming {len(can_claim)} tasks...')
+    log(f'\\n[任务] 正在领取 {len(can_claim)} 个任务...')
     for t in can_claim:
         claim_mission(t['activity_id'], t['mission_id'])
         time.sleep(0.3)
 
-log(f'\\nFinal water: {get_water()}')
-log('Done!')
+log(f'\\n最终水滴：{get_water()}')
+log('执行完毕！')
 `;
         
         // 写入临时 Python 脚本
