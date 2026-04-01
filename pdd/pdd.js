@@ -4,6 +4,10 @@
  * 用法：node pdd.js
  */
 
+// pdd任务
+// cron: 0 8 * * *
+// new Env('pdd任务');
+
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
