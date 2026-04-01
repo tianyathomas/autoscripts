@@ -60,8 +60,7 @@
 
 | 变量名 | 说明 | 获取方式 |
 |--------|------|----------|
-| `PDD_COOKIE` | 拼多多果园完整 Cookie | 手机打开拼多多果园，F12 开发者工具 → Network → 刷新页面 → 找任意请求复制完整 Cookie。必须包含：`api_uid`、`pdd_user_id`、`PDDAccessToken`、`pdd_user_uin`、`tubetoken`、`pdd_vds` |
-| `PDD_UID` | 拼多多用户 ID（可选） | 默认 `3902581294`，可在 Cookie 中找到 `pdd_user_id` 的值 |
+| `PDD_COOKIE` | 拼多多果园完整 Cookie（必填） | 手机打开拼多多果园，F12 开发者工具 → Network → 刷新页面 → 找任意请求复制完整 Cookie。必须包含：`api_uid`、`pdd_user_id`、`PDDAccessToken`、`pdd_user_uin`、`tubetoken`、`pdd_vds`。脚本会自动从 Cookie 中提取 `pdd_user_id` |
 
 ## 📖 使用说明
 
