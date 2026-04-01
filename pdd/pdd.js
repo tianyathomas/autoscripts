@@ -15,7 +15,14 @@ const util = require('util');
 
 // ===== 配置 =====
 const COOKIE_STR = process.env.PDD_COOKIE || '';
-const PDDUID = process.env.PDD_UID || '3902581294';
+
+// 从 Cookie 自动提取 pdd_user_id（必须字段）
+const UID_MATCH = COOKIE_STR.match(/pdd_user_id=(\d+)/);
+if (!UID_MATCH) {
+    log('❌ PDD_COOKIE 缺少 pdd_user_id 字段，请重新获取完整 Cookie');
+    process.exit(1);
+}
+const PDDUID = UID_MATCH[1];
 
 // 真实 UA（Chrome 146 on Windows 10）
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36';
