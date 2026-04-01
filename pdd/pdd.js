@@ -284,8 +284,8 @@ def get_mission_list():
     log('[任务] 正在获取任务列表...')
     url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/mission/list?pdduid={PDDUID}&is_back=1'
     data = {
-        "activity_id_list": [201036],
-        # 扩展任务类型覆盖更多任务（原有 + 补充常见类型）
+        "activity_id_list": [201015, 201036],
+        # 扩展任务类型覆盖更多任务
         "mission_types": [
             38160, 38242, 38090, 38451, 37859, 38428,
             38500, 38501, 38502, 38503, 38504, 38505,
@@ -293,6 +293,16 @@ def get_mission_list():
             37900, 37950, 38000, 38050, 38100, 38150
         ],
         "request_params": {
+            "act201015EntryInfo": {
+                "1": {"needRefresh": True},
+                "2": {"needRefresh": True},
+                "3": {"needRefresh": True},
+                "4": {"needRefresh": True},
+                "5": {"needRefresh": True},
+                "6": {"needRefresh": True},
+                "7": {"needRefresh": True},
+                "8": {"needRefresh": True}
+            },
             "act201036EntryInfo": {
                 "1": {"needRefresh": True},
                 "2": {"needRefresh": True},
@@ -352,6 +362,9 @@ def get_mission_list():
         # 可领取条件：is_draw=False, is_open=True, finished_count >= 1
         can_claim = [t for t in tasks if
                      not t['is_draw'] and t['is_open'] and t['finished_count'] >= 1]
+        # 需要先接受的任务：is_draw=False, is_open=False, finished_count >= 1
+        need_accept = [t for t in tasks if
+                       not t['is_draw'] and not t['is_open'] and t['finished_count'] >= 1]
 
         # 打印所有任务状态
         status_map = {}
@@ -359,7 +372,7 @@ def get_mission_list():
             key = f"status={t['unified_status']}, draw={t['is_draw']}, open={t['is_open']}"
             status_map[key] = status_map.get(key, 0) + 1
         if tasks:
-            log(f'[任务] 共 {len(tasks)} 个，可领取：{len(can_claim)}')
+            log(f'[任务] 共 {len(tasks)} 个，可领取：{len(can_claim)}，需接受：{len(need_accept)}')
             log(f'[任务] 状态分布：{status_map}')
             for t in tasks:
                 log(f"  [{t['unified_status']}] act={t['activity_id']} id={t['mission_id']} "
@@ -373,10 +386,13 @@ def get_mission_list():
         for t in can_claim:
             log(f'  -> 可领取：act={t["activity_id"]} id={t["mission_id"]} '
                 f'+{t["reward_amount"]}{t["reward_type"]}')
-        return can_claim
+        for t in need_accept:
+            log(f'  -> 需接受：act={t["activity_id"]} id={t["mission_id"]} '
+                f'+{t["reward_amount"]}{t["reward_type"]}')
+        return can_claim, need_accept
     except Exception as e:
         log(f'[任务] 错误：{e}')
-        return []
+        return [], []
 
 def claim_mission(activity_id, mission_id):
     url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/mission/draw?pdduid={PDDUID}&is_back=1'
@@ -396,6 +412,25 @@ def claim_mission(activity_id, mission_id):
         log(f'[任务] 错误：{e}')
         return False
 
+def accept_mission(activity_id, mission_id):
+    """接受/打开任务"""
+    url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/mission/accept?pdduid={PDDUID}&is_back=1'
+    data = {"mission_id": mission_id, "activity_id": activity_id, "tubetoken": TUBETOKEN, "fun_pl": 2}
+    try:
+        resp = requests.post(url, cookies=COOKIE, headers=make_headers(ANTI_TOKEN), json=data, timeout=15)
+        result = resp.json()
+        if result.get('success'):
+            log(f'[任务] 接受任务 act={activity_id} id={mission_id}: 成功')
+            return True
+        else:
+            log(f'[任务] 接受任务 act={activity_id} id={mission_id}: '
+                f'{result.get("error_code")} - {result.get("error_msg", "")}')
+            return False
+    except Exception as e:
+        log(f'[任务] 接受任务异常：{e}')
+        return False
+        return False
+
 # 主流程
 water = get_water()
 log(f'当前水滴：{water}')
@@ -406,7 +441,16 @@ time.sleep(0.5)
 if water >= 10:
     water_tree(min(50, water // 10))
 
-can_claim = get_mission_list()
+can_claim, need_accept = get_mission_list()
+
+# 先接受需要接受的任务
+if need_accept:
+    log(f'\\n[任务] 正在接受 {len(need_accept)} 个任务...')
+    for t in need_accept:
+        accept_mission(t['activity_id'], t['mission_id'])
+        time.sleep(0.3)
+
+# 再领取可领取的任务
 if can_claim:
     log(f'\\n[任务] 正在领取 {len(can_claim)} 个任务...')
     for t in can_claim:
