@@ -405,7 +405,7 @@ if water >= 10:
 
 can_claim = get_mission_list()
 if can_claim:
-    log(f'\n[Mission] Claiming {len(can_claim)} tasks...')
+    log(f'\\n[Mission] Claiming {len(can_claim)} tasks...')
     for t in can_claim:
         claim_mission(t['activity_id'], t['mission_id'])
         time.sleep(0.3)
