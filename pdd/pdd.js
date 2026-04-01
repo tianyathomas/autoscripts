@@ -257,15 +257,17 @@ def water_tree(max_times=50):
         try:
             resp = requests.post(url, cookies=COOKIE, headers=make_headers(ANTI_TOKEN), json={}, timeout=15)
             result = resp.json()
-            if result.get('success'):
-                left = result.get('water', 0)
+            # 响应无 'success' 字段，用 now_water_amount 判断是否扣水成功
+            left = result.get('now_water_amount')
+            if left is not None and left < water:
+                water = left
                 watered += 1
                 log(f'[Water] {watered}/{count}, left: {left}')
                 if left < 10:
                     break
                 time.sleep(0.2)
             else:
-                log(f'[Water] API response: {result}')
+                log(f'[Water] No water deducted, stopping. Response keys: {list(result.keys())[:8]}')
                 break
         except Exception as e:
             log(f'[Water] Exception: {e}')
@@ -307,56 +309,85 @@ def get_mission_list():
         resp = requests.post(url, cookies=COOKIE, headers=make_headers(ANTI_TOKEN), json=data, timeout=15)
         result = resp.json()
         
-        if 'mission_list' in result:
-            missions = result['mission_list']
-            tasks = []
-            for key, items in missions.items():
-                if isinstance(items, list):
-                    for m in items:
-                        tasks.append({
-                            'id': m.get('mission_id'),
-                            'type': m.get('mission_type'),
-                            'status': m.get('status'),
-                            'reward': m.get('reward', 0),
-                            'desc': m.get('mission_desc', '')[:20]
-                        })
-            
-            # 打印所有任务及状态，便于分析可领取条件
-            status_map = {}
-            for t in tasks:
-                status_map[t['status']] = status_map.get(t['status'], 0) + 1
-            if tasks:
-                log(f'[Mission] Status distribution: {status_map}')
-                for t in tasks:
-                    log(f'  [status={t["status"]}] id={t["id"]}, reward={t["reward"]}, {t["desc"]}')
-            else:
-                log(f'[Mission] mission_list keys: {list(missions.keys())}')
-                log(f'[Mission] Raw response (truncated): {str(result)[:300]}')
+        # 真实任务藏在 activity_vo_map -> mission_list 里
+        activity_map = result.get('activity_vo_map', {})
+        tasks = []
+        for act_id_str, act_data in activity_map.items():
+            act_id = int(act_id_str)
+            act_missions = act_data.get('mission_list', {})
+            if not act_missions:
+                continue
+            for mission_id_str, m in act_missions.items():
+                mission_id = int(mission_id_str)
+                reward_info = m.get('reward_info') or []
+                reward_amount = 0
+                reward_type = ''
+                for r in reward_info:
+                    if r.get('reward_type') == 1:
+                        reward_amount = r.get('min_reward_amount', 0)
+                        reward_type = '水滴'
+                        break
+                if not reward_amount:
+                    for r in reward_info:
+                        reward_amount = r.get('min_reward_amount', 0)
+                        reward_type = f'T{r.get("reward_type", "?")}'
+                        break
 
-            can_claim = [t for t in tasks if t['status'] == 250]
+                tasks.append({
+                    'activity_id': act_id,
+                    'mission_id': mission_id,
+                    'type': m.get('type'),
+                    'unified_status': m.get('unified_status'),
+                    'is_draw': m.get('is_draw', False),
+                    'is_open': m.get('is_open', False),
+                    'finished_count': m.get('finished_count', 0),
+                    'max_count': m.get('max_count', 0),
+                    'reward_amount': reward_amount,
+                    'reward_type': reward_type,
+                })
+
+        # 可领取条件：is_draw=False, is_open=True, finished_count >= 1
+        can_claim = [t for t in tasks if
+                     not t['is_draw'] and t['is_open'] and t['finished_count'] >= 1]
+
+        # 打印所有任务状态
+        status_map = {}
+        for t in tasks:
+            key = f"status={t['unified_status']}, draw={t['is_draw']}, open={t['is_open']}"
+            status_map[key] = status_map.get(key, 0) + 1
+        if tasks:
             log(f'[Mission] Total: {len(tasks)}, can claim: {len(can_claim)}')
-            for t in can_claim:
-                log(f'  -> Will claim: id={t["id"]}, reward={t["reward"]}, {t["desc"]}')
-            return tasks
+            log(f'[Mission] Status breakdown: {status_map}')
+            for t in tasks:
+                log(f"  [{t['unified_status']}] act={t['activity_id']} id={t['mission_id']} "
+                    f"draw={t['is_draw']} open={t['is_open']} "
+                    f"done={t['finished_count']}/{t['max_count']} "
+                    f"reward={t['reward_amount']}{t['reward_type']}")
         else:
-            log(f'[Mission] Error: {result.get("error_code")} - {result.get("error_msg", "")}')
-            log(f'[Mission] Full response (truncated): {str(result)[:300]}')
-            return []
+            log(f'[Mission] activity_vo_map keys: {list(activity_map.keys())}')
+            log(f'[Mission] Full response keys: {list(result.keys())[:15]}')
+
+        for t in can_claim:
+            log(f'  -> Can claim: act={t["activity_id"]} id={t["mission_id"]} '
+                f'+{t["reward_amount"]}{t["reward_type"]}')
+        return can_claim
     except Exception as e:
         log(f'[Mission] Error: {e}')
         return []
 
-def claim_mission(mission_id):
+def claim_mission(activity_id, mission_id):
     url = f'https://mobile.pinduoduo.com/proxy/api/api/manor/mission/draw?pdduid={PDDUID}&is_back=1'
-    data = {"mission_id": mission_id, "tubetoken": TUBETOKEN, "fun_pl": 2}
+    data = {"mission_id": mission_id, "activity_id": activity_id, "tubetoken": TUBETOKEN, "fun_pl": 2}
     try:
         resp = requests.post(url, cookies=COOKIE, headers=make_headers(ANTI_TOKEN), json=data, timeout=15)
         result = resp.json()
         if result.get('success'):
-            log(f'[Mission] Claimed {mission_id}: +{result.get("water", 0)} water')
+            log(f'[Mission] Claimed act={activity_id} id={mission_id}: '
+                f'+{result.get("water", result.get("reward_amount", 0))} water')
             return True
         else:
-            log(f'[Mission] Claim {mission_id} failed: {result.get("error_code")}')
+            log(f'[Mission] Claim act={activity_id} id={mission_id} failed: '
+                f'{result.get("error_code")} - {result.get("error_msg", "")}')
             return False
     except Exception as e:
         log(f'[Mission] Error: {e}')
@@ -372,12 +403,11 @@ time.sleep(0.5)
 if water >= 10:
     water_tree(min(50, water // 10))
 
-tasks = get_mission_list()
-can_claim = [t for t in tasks if t['status'] == 250]
+can_claim = get_mission_list()
 if can_claim:
-    log(f'\\n[Mission] Claiming {len(can_claim)} tasks...')
+    log(f'\n[Mission] Claiming {len(can_claim)} tasks...')
     for t in can_claim:
-        claim_mission(t['id'])
+        claim_mission(t['activity_id'], t['mission_id'])
         time.sleep(0.3)
 
 log(f'\\nFinal water: {get_water()}')
