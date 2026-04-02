@@ -38,14 +38,9 @@ class BiliBiliCheckIn:
                 if key not in self.bilibili_cookie:
                     self.bilibili_cookie[key] = value
 
-        # 打印解析到的cookie key用于调试
-        print(f"[DEBUG] 解析到的Cookie keys: {list(self.bilibili_cookie.keys())}")
-
         self.bili_jct = self.bilibili_cookie.get("bili_jct")
         if not self.bili_jct:
             raise ValueError("cookie 中未找到 bili_jct，请检查cookie是否完整")
-
-        print(f"[DEBUG] bili_jct = {self.bili_jct[:10]}...")
 
         # 初始化session
         self.session = requests.Session()
