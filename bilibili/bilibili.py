@@ -38,9 +38,14 @@ class BiliBiliCheckIn:
                 if key not in self.bilibili_cookie:
                     self.bilibili_cookie[key] = value
 
+        # 打印解析到的cookie key用于调试
+        print(f"[DEBUG] 解析到的Cookie keys: {list(self.bilibili_cookie.keys())}")
+
         self.bili_jct = self.bilibili_cookie.get("bili_jct")
         if not self.bili_jct:
             raise ValueError("cookie 中未找到 bili_jct，请检查cookie是否完整")
+
+        print(f"[DEBUG] bili_jct = {self.bili_jct[:10]}...")
 
         # 初始化session
         self.session = requests.Session()
@@ -81,8 +86,14 @@ class BiliBiliCheckIn:
     def vip_privilege_my(session):
         """获取大会员权益信息"""
         url = "https://api.bilibili.com/x/vip/privilege/my"
-        ret = session.get(url=url, timeout=10).json()
-        return ret
+        try:
+            ret = session.get(url=url, timeout=10)
+            # 检查响应状态
+            if ret.status_code != 200:
+                return {"code": -1, "message": f"HTTP {ret.status_code}"}
+            return ret.json()
+        except Exception as e:
+            return {"code": -1, "message": str(e)}
 
     @staticmethod
     def live_sign(session):
@@ -270,21 +281,31 @@ class BiliBiliCheckIn:
         manga_msg = self.manga_sign(self.session)
 
         # 领取大会员权益
-        privilege_msg = "无需领取"
-        try:
-            vip_privilege_my_ret = self.vip_privilege_my(self.session)
-            welfare_list = vip_privilege_my_ret.get("data", {}).get("list", [])
-            for welfare in welfare_list:
-                if welfare.get("state") == 0 and welfare.get("vip_type") == vip_type:
-                    ret = self.vip_privilege_receive(
-                        self.session, self.bili_jct, welfare.get("type")
-                    )
-                    if ret.get("code") == 0:
-                        privilege_msg = "领取成功"
-                        print(f"[大会员权益] 领取成功: {welfare.get('type')}")
-        except Exception as e:
-            privilege_msg = f"领取异常: {e}"
-            print(f"[大会员权益] {privilege_msg}")
+        privilege_msg = "非大会员"
+        if vip_type > 0:
+            privilege_msg = "无需领取"
+            try:
+                vip_privilege_my_ret = self.vip_privilege_my(self.session)
+                if vip_privilege_my_ret.get("code") != 0:
+                    privilege_msg = f"获取失败: {vip_privilege_my_ret.get('message', '未知错误')}"
+                else:
+                    welfare_list = vip_privilege_my_ret.get("data", {}).get("list", [])
+                    if not welfare_list:
+                        privilege_msg = "无权益可领"
+                    else:
+                        for welfare in welfare_list:
+                            if welfare.get("state") == 0 and welfare.get("vip_type") == vip_type:
+                                ret = self.vip_privilege_receive(
+                                    self.session, self.bili_jct, welfare.get("type")
+                                )
+                                if ret.get("code") == 0:
+                                    privilege_msg = "领取成功"
+                                    print(f"[大会员权益] 领取成功: 权益类型 {welfare.get('type')}")
+                                else:
+                                    privilege_msg = f"领取失败: {ret.get('message', '未知错误')}"
+            except Exception as e:
+                privilege_msg = f"领取异常: {e}"
+                print(f"[大会员权益] {privilege_msg}")
 
         # 统计今日已投币数
         today_exp_list = self.get_today_exp(self.session)
@@ -329,22 +350,21 @@ class BiliBiliCheckIn:
                     break
                 try:
                     ret = self.coin_add(video.get("aid"))
-                    print(f"[DEBUG] 投币返回: {ret}")  # 添加调试信息
                     if ret["code"] == 0:
-                        print(f"[投币] 成功投币: {video.get('title')}")
+                        print(f"[投币] ✓ 成功: {video.get('title')[:30]}...")
                         success_count += 1
                         need_coin -= 1
                     elif ret["code"] == 34005:
-                        print(f"[投币] 已达上限，跳过: {video.get('title')}")
+                        print(f"[投币] ○ 已达上限: {video.get('title')[:20]}...")
                         continue
                     elif ret["code"] == -104:
-                        print("[投币] 硬币不足，停止投币")
+                        print("[投币] ✗ 硬币不足，停止投币")
                         break
                     else:
-                        print(f"[投币] 失败 ({ret.get('message')}), 停止投币")
+                        print(f"[投币] ✗ 失败: {ret.get('message')}")
                         break
                 except Exception as e:
-                    print(f"[投币] 异常: {e}")
+                    print(f"[投币] ✗ 异常: {e}")
 
             coin_msg = f"今日投币 {success_count + coins_av_count}/{self.coin_num}"
         else:
@@ -371,10 +391,9 @@ class BiliBiliCheckIn:
 
             try:
                 ret = self.report_task(aid, cid)
-                print(f"[DEBUG] 观看任务返回: {ret}")  # 添加调试信息
-                report_msg = f"观看《{title}》300秒" if ret.get("code") == 0 else f"任务失败: {ret.get('message')}"
+                report_msg = f"✓ 观看《{title[:20]}...》300秒" if ret.get("code") == 0 else f"✗ 失败: {ret.get('message')}"
             except Exception as e:
-                report_msg = f"任务异常: {e}"
+                report_msg = f"✗ 异常: {e}"
             print(f"[观看任务] {report_msg}")
 
             try:
