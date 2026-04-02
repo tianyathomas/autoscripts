@@ -5,6 +5,7 @@ new Env('B站签到');
 
 import os
 import time
+import json
 import requests
 
 # ============ 环境变量配置 ============
@@ -26,12 +27,16 @@ class BiliBiliCheckIn:
         if not self.cookie_str:
             raise ValueError("未设置环境变量 BILIBILI_COOKIE，请先配置")
 
-        # 解析cookie
+        # 解析cookie - 修复：支持多种分隔符，去重
         self.bilibili_cookie = {}
-        for item in self.cookie_str.split("; "):
+        # 支持 ; 和 ; 两种分隔符
+        for item in self.cookie_str.replace("; ", ";").replace("; ", ";").split(";"):
+            item = item.strip()
             if "=" in item:
-                key, value = item.split("=", 1)  # 修复：最多分割一次
-                self.bilibili_cookie[key] = value
+                key, value = item.split("=", 1)
+                # 避免重复key覆盖
+                if key not in self.bilibili_cookie:
+                    self.bilibili_cookie[key] = value
 
         self.bili_jct = self.bilibili_cookie.get("bili_jct")
         if not self.bili_jct:
@@ -41,10 +46,12 @@ class BiliBiliCheckIn:
         self.session = requests.Session()
         requests.utils.add_dict_to_cookiejar(self.session.cookies, self.bilibili_cookie)
         self.session.headers.update({
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Referer": "https://www.bilibili.com/",
+            "Origin": "https://www.bilibili.com",
             "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
             "Connection": "keep-alive",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         })
 
     @staticmethod
@@ -141,7 +148,7 @@ class BiliBiliCheckIn:
         params = {
             "mid": uid,
             "pn": pn,
-            "ps": ps,  # 修复：原为大写 Ps
+            "ps": ps,
             "tid": 0,
             "order": "pubdate",
             "keyword": "",
@@ -177,26 +184,39 @@ class BiliBiliCheckIn:
         ]
         return data_list
 
-    @staticmethod
-    def coin_add(session, bili_jct, aid, num=1, select_like=1):
-        """投币"""
+    def coin_add(self, aid, num=1, select_like=1):
+        """投币 - 修复版"""
         url = "https://api.bilibili.com/x/web-interface/coin/add"
         post_data = {
             "aid": aid,
             "multiply": num,
             "select_like": select_like,
             "cross_domain": "true",
-            "csrf": bili_jct,
+            "csrf": self.bili_jct,
         }
-        ret = session.post(url=url, data=post_data, timeout=10).json()
+        
+        # 添加更完整的请求头
+        headers = {
+            "Referer": "https://www.bilibili.com",
+            "Origin": "https://www.bilibili.com",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        }
+        
+        ret = self.session.post(url=url, data=post_data, headers=headers, timeout=10).json()
         return ret
 
-    @staticmethod
-    def report_task(session, bili_jct, aid, cid, progres=300):
-        """上报观看进度"""
+    def report_task(self, aid, cid, progres=300):
+        """上报观看进度 - 修复版"""
         url = "http://api.bilibili.com/x/v2/history/report"
-        post_data = {"aid": aid, "cid": cid, "progres": progres, "csrf": bili_jct}
-        ret = session.post(url=url, data=post_data, timeout=10).json()
+        post_data = {"aid": aid, "cid": cid, "progres": progres, "csrf": self.bili_jct}
+        
+        headers = {
+            "Referer": "https://www.bilibili.com",
+            "Origin": "https://www.bilibili.com",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        }
+        
+        ret = self.session.post(url=url, data=post_data, headers=headers, timeout=10).json()
         return ret
 
     @staticmethod
@@ -308,7 +328,8 @@ class BiliBiliCheckIn:
                 if need_coin <= 0:
                     break
                 try:
-                    ret = self.coin_add(self.session, self.bili_jct, video.get("aid"))
+                    ret = self.coin_add(video.get("aid"))
+                    print(f"[DEBUG] 投币返回: {ret}")  # 添加调试信息
                     if ret["code"] == 0:
                         print(f"[投币] 成功投币: {video.get('title')}")
                         success_count += 1
@@ -349,8 +370,9 @@ class BiliBiliCheckIn:
                     cid = 0
 
             try:
-                ret = self.report_task(self.session, self.bili_jct, aid, cid)
-                report_msg = f"观看《{title}》300秒" if ret.get("code") == 0 else "任务失败"
+                ret = self.report_task(aid, cid)
+                print(f"[DEBUG] 观看任务返回: {ret}")  # 添加调试信息
+                report_msg = f"观看《{title}》300秒" if ret.get("code") == 0 else f"任务失败: {ret.get('message')}"
             except Exception as e:
                 report_msg = f"任务异常: {e}"
             print(f"[观看任务] {report_msg}")
