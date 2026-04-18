@@ -5,15 +5,38 @@
 @Description: 活力伊利小程序签到
 cron: 30 8 * * *
 ------------------------------------------
-#Notice: 
-变量名 hlyl
-抓取 https://msmarket.msx.digitalyili.com/请求头access-token 多账户&或换行
-
 变量名 hlyl
 抓取 https://msmarket.msx.digitalyili.com/请求头access-token 多账户&或换行
 */
 
-const { Env } = require("../tools/env")
+// ===== Env 内联（无需外部依赖） =====
+class Env {
+  constructor(name) {
+    this.name = name;
+    this.userIdx = 0;
+    this.userList = [];
+  }
+  checkEnv(ckName) {
+    const envVal = process.env[ckName];
+    if (!envVal) {
+      console.log(`[WARN] 未找到环境变量 ${ckName}`);
+      this.userList = [];
+      return;
+    }
+    this.userList = envVal.includes("\n")
+      ? envVal.split("\n").filter(Boolean)
+      : envVal.split("#").filter(Boolean);
+    console.log(`[${this.name}] 共找到 ${this.userList.length} 个账号`);
+  }
+  log(msg) {
+    console.log(msg);
+  }
+  done() {
+    console.log(`[${this.name}] 执行完毕`);
+  }
+}
+// ===== Env 内联结束 =====
+
 const $ = new Env("活力伊利小程序");
 let ckName = `hlyl`;
 const strSplitor = "#";
