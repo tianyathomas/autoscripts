@@ -41,9 +41,6 @@ const $ = new Env("活力伊利小程序");
 let ckName = `hlyl`;
 const strSplitor = "#";
 const axios = require("axios");
-const defaultUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.31(0x18001e31) NetType/WIFI Language/zh_CN miniProgram"
-
-
 class Task {
  constructor(env) {
  this.index = $.userIdx++
@@ -107,7 +104,6 @@ class Task {
 }
 
 !(async () => {
- await getNotice()
  $.checkEnv(ckName);
 
  for (let user of $.userList) {
@@ -116,21 +112,3 @@ class Task {
 })()
  .catch((e) => console.log(e))
  .finally(() => $.done());
-
-async function getNotice() {
- try {
- let options = {
- url: `https://ghproxy.net/https://raw.githubusercontent.com/smallfawn/Note/refs/heads/main/Notice.json`,
- headers: {
- "User-Agent": defaultUserAgent,
- },
- timeout: 3000
- }
- let {
- data: res
- } = await axios.request(options);
- $.log(res)
- return res
- } catch (e) { }
-
-}
