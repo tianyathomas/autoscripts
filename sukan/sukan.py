@@ -1,12 +1,12 @@
 https://saad.ms.zhangyue.net/ad/cfg?'''
 ============================================================
 任务名称: 速看任务
-定时: 每天 07:40 执行
+定时: 每天 06:35 执行
 环境变量: SUKAN_URL = 速看 App 中包含完整参数的活动链接
 格式类似https://welfare-user.palmestore.com/sukanread/welfare-package/...?zyeid=xxx&kt=xxx&p1=xxx&p35=xxx
 ============================================================
 Author: ttlsky
-cron: 0 40 7 * * *
+cron: 0 35 6 * * *
 new Env('速看任务')
 '''
 
