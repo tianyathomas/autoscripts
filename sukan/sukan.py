@@ -1,4 +1,4 @@
-https://saad.ms.zhangyue.net/ad/cfg?'''
+'''
 ============================================================
 任务名称: 速看任务
 定时: 每天 06:35 执行
@@ -416,4 +416,4 @@ if __name__ == "__main__":
 
     # 启动任务
     task = SuKanTask(YOUR_URL)
-    task.run_all_tasks()=db85eb46-e066-4ec6-938b-5ea3cf5d145e&usr=j248768912&rgt=7&p1=aeNAoHzlgFgDALC0dvvYMA7X&ku=j248768912&kt=e1e3378e32d7b22683751dbfce5880bb&pc=10&p2=801003&p3=80002056&p4=501656&p5=19&p7=__8eb5164398e1d8c1&p9=3&p12=&p16=M2012K10C&p21=99&p22=13&p25=80002056&p26=33&p28=b5005a8a399f0a96&p29=zycb1bdb&p30=&p31=__8eb5164398e1d8c1&p33=com.chaozh.xincao.only.sk&p34=Redmi&p36=a&firm=Redmi&d1=8.0.2&device_type_os=13&device_model=M2012K10C&app_package=com.chaozh.xincao.only.sk&device_adid=NGViNTM4Mjk3NGUzZDRjMw==&device_brand_ver=Redmi&device_geo_lon=0&device_type=0&device_appstore_version=&type=api&network=99&device_width=1080&apiVersion=1&device_ppi=440&usr=j248768912&device_ua=Mozilla%2F5.0+%28Linux%3B+Android+13%3B+M2012K10C+Build%2FTP1A.220624.014%3B+wv%29+AppleWebKit%2F537.36+%28KHTML%2C+like+Gecko%29+Version%2F4.0+Chrome%2F146.0.7680.177+Mobile+Safari%2F537.36&model=M2012K10C&device_network=1&device_dpi=440&inner_version=80002056&ver=3.0&os_ver=13&hostVersion=0&device_id=&plugin_ver=0&is_mobile=1&apiver=2&version_code=80002056&plugin_name=pluginwebdiff_ad&device_os=Android&app_platform=501656&device_oaid=YjUwMDVhOGEzOTlmMGE5Ng==&app_name=%E9%80%9F%E7%9C%8B%E5%85%8D%E8%B4%B9%E5%B0%8F%E8%AF%B4&device_hms_version=&device_height=2272&device_brand=Xiaomi&user_id=j248768912&device_geo_lat=0&app_ver=8.0.2&device_token=&os_type=android&device_a1=&sdkVersion=800023&device_a2=&device_a3=&channel_id=801003&ts=1776500949685&p2=801003&sign=g%2FjZv7RsQ4vLi3ahsQwg6%2B%2F0nfUfNsJub1eJga91PRxiHo3rr49brRG6aygUGaHN9HDwhT3s8fveTKK145B4tRmv%2BTO2w2Z9HiWkQWREHFYwTBGhahDoYfpJfN9XOF%2Bsjc%2BkCKckzTTg0aBEug8xL2Pt5QsbobQQ3XFUNp1l8bQ%3D&app_id=10170&timestamp=1776500949686
+    task.run_all_tasks()
