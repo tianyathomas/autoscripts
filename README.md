@@ -23,7 +23,6 @@
 | [百度贴吧签到](tieba/tieba.py) | 自动签到贴吧及关注贴吧列表 | `BD_COOKIE` |
 | [百度网盘签到](baiduwp/baiduwp.py) | 成长值签到，每日打卡、会员查询 | `BD_COOKIE` |
 | [WSKEY转换](wskey/wskey.py) | 将 WSKEY 转为 JD Cookie | `JD_WSCK` |
-| [拼多多果园](pdd/pdd.js) | 自动签到、浇水、领取任务奖励 | `PDD_COOKIE` |
 
 ## 🔧 环境变量配置说明
 
@@ -56,11 +55,6 @@
 |--------|------|----------|
 | `BD_COOKIE` | 百度系通用 Cookie（贴吧+网盘共用） | 浏览器登录百度任意产品，F12 开发者工具 → Network 选项 → 任意请求 → Headers → Cookie |
 
-### 拼多多果园
-
-| 变量名 | 说明 | 获取方式 |
-|--------|------|----------|
-| `PDD_COOKIE` | 拼多多果园完整 Cookie（必填） | 手机打开拼多多果园，F12 开发者工具 → Network → 刷新页面 → 找任意请求复制完整 Cookie。必须包含：`api_uid`、`pdd_user_id`、`PDDAccessToken`、`pdd_user_uin`、`tubetoken`、`pdd_vds`。脚本会自动从 Cookie 中提取 `pdd_user_id` |
 
 ## 📖 使用说明
 
@@ -79,7 +73,6 @@
 | 百度贴吧签到 | 每天 8:00 | `0 8 * * *` |
 | 百度网盘签到 | 每天 9:00 | `0 9 * * *` |
 | WSKEY转换 | 每天 9:00 | `0 9 * * *` |
-| 拼多多果园 | 每天 8:00、20:00 | `0 8 * * *`、`0 20 * * *` |
 
 ## 🤝 贡献
 
