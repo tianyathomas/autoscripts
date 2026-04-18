@@ -1,6 +1,6 @@
 '''
 ============================================================
-任务名称: 速看任务
+任务名称: 速看小说
 定时: 每天 06:35 执行
 环境变量: SUKAN_URL = 速看 App 中包含完整参数的活动链接
 格式类似https://welfare-user.palmestore.com/sukanread/welfare-package/...?zyeid=xxx&kt=xxx&p1=xxx&p35=xxx
