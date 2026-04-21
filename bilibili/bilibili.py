@@ -23,6 +23,14 @@ class BiliBiliCheckIn:
         self.coin_num = int(os.getenv("BILIBILI_COIN_NUM", "5"))
         self.coin_type = int(os.getenv("BILIBILI_COIN_TYPE", "1"))
         self.silver2coin = os.getenv("BILIBILI_SILVER2COIN", "false").lower() == "true"
+        
+        # 经验值定义
+        self.exp_dic = {
+            '每日登录': 5,
+            '每日观看视频': 5,
+            '每日分享视频': 5,
+            '每日投币': 10
+        }
 
         if not self.cookie_str:
             raise ValueError("未设置环境变量 BILIBILI_COOKIE，请先配置")
@@ -90,23 +98,27 @@ class BiliBiliCheckIn:
         except Exception as e:
             return {"code": -1, "message": str(e)}
 
+
+
     @staticmethod
-    def live_sign(session):
-        """B站直播签到"""
+    def get_random_video(session):
+        """获取一个随机视频用于观看和分享"""
+        url = "https://api.bilibili.com/x/web-interface/ranking/v2?rid=0&type=all"
         try:
-            url = "https://api.live.bilibili.com/xlive/web-ucenter/v1/sign/DoSign"
             ret = session.get(url=url, timeout=10).json()
             if ret["code"] == 0:
-                data = ret["data"]
-                msg = f"签到成功，{data['text']}，本月已签到{data['hadSignDays']}天"
-            elif ret["code"] == 1011040:
-                msg = "今日已签到过"
-            else:
-                msg = f"签到失败: {ret['message']}"
+                videos = ret.get("data", {}).get("list", [])
+                if videos:
+                    import random
+                    video = videos[random.randint(0, len(videos) - 1)]
+                    return {
+                        "aid": video.get("aid"),
+                        "cid": video.get("cid"),
+                        "title": video.get("title"),
+                    }
         except Exception as e:
-            msg = f"签到异常: {e}"
-        print(f"[直播签到] {msg}")
-        return msg
+            print(f"[获取视频] 获取随机视频失败: {e}")
+        return None
 
     @staticmethod
     def manga_sign(session, platform="android"):
@@ -269,8 +281,8 @@ class BiliBiliCheckIn:
         print(f"   硬币: {coin} | VIP类型: {vip_type}")
         print()
 
-        # 直播签到
-        live_msg = self.live_sign(self.session)
+        # 登录成功，获取经验
+        print(f"[登录] 登录成功，经验+{self.exp_dic['每日登录']} √")
 
         # 漫画签到
         manga_msg = self.manga_sign(self.session)
@@ -346,20 +358,21 @@ class BiliBiliCheckIn:
                 try:
                     ret = self.coin_add(video.get("aid"))
                     if ret["code"] == 0:
-                        print(f"[投币] ✓ 成功: {video.get('title')[:30]}...")
+                        print(f"[投币] [OK] 成功: {video.get('title')[:30]}...")
+                        print(f"[投币] 投币成功，经验+{self.exp_dic['每日投币']} [OK]")
                         success_count += 1
                         need_coin -= 1
                     elif ret["code"] == 34005:
-                        print(f"[投币] ○ 已达上限: {video.get('title')[:20]}...")
+                        print(f"[投币] [SKIP] 已达上限: {video.get('title')[:20]}...")
                         continue
                     elif ret["code"] == -104:
-                        print("[投币] ✗ 硬币不足，停止投币")
+                        print("[投币] [FAIL] 硬币不足，停止投币")
                         break
                     else:
-                        print(f"[投币] ✗ 失败: {ret.get('message')}")
+                        print(f"[投币] [FAIL] 失败: {ret.get('message')}")
                         break
                 except Exception as e:
-                    print(f"[投币] ✗ 异常: {e}")
+                    print(f"[投币] [FAIL] 异常: {e}")
 
             coin_msg = f"今日投币 {success_count + coins_av_count}/{self.coin_num}"
         else:
@@ -370,8 +383,9 @@ class BiliBiliCheckIn:
         # 观看视频任务
         report_msg = "任务失败"
         share_msg = "分享失败"
-        if aid_list:
-            video = aid_list[0]
+        video = aid_list[0] if aid_list else self.get_random_video(self.session)
+        
+        if video:
             aid, cid = video.get("aid"), video.get("cid")
             title = video.get("title", "未知")
 
@@ -386,17 +400,29 @@ class BiliBiliCheckIn:
 
             try:
                 ret = self.report_task(aid, cid)
-                report_msg = f"✓ 观看《{title[:20]}...》300秒" if ret.get("code") == 0 else f"✗ 失败: {ret.get('message')}"
+                if ret.get("code") == 0:
+                    report_msg = f"[OK] 观看《{title[:20]}...》300秒"
+                    print(f"[观看任务] 视频播放成功，经验+{self.exp_dic['每日观看视频']} [OK]")
+                else:
+                    report_msg = f"[FAIL] 失败: {ret.get('message')}"
             except Exception as e:
-                report_msg = f"✗ 异常: {e}"
+                report_msg = f"[FAIL] 异常: {e}"
             print(f"[观看任务] {report_msg}")
 
             try:
                 ret = self.share_task(self.session, self.bili_jct, aid)
-                share_msg = "分享成功" if ret.get("code") == 0 else "分享失败"
+                if ret.get("code") == 0:
+                    share_msg = "[OK] 分享成功"
+                    print(f"[分享任务] 视频分享成功，经验+{self.exp_dic['每日分享视频']} [OK]")
+                else:
+                    share_msg = f"[FAIL] {ret.get('message')}"
+                    print(f"[分享任务] 分享失败: {ret.get('message')}")
             except Exception as e:
-                share_msg = f"分享异常: {e}"
-            print(f"[分享任务] {share_msg}")
+                share_msg = f"[FAIL] {e}"
+                print(f"[分享任务] {share_msg}")
+        else:
+            print("[观看任务] 无法获取视频，任务跳过")
+            print("[分享任务] 无法获取视频，任务跳过")
 
         # 银瓜子兑换
         s2c_msg = "不兑换"
@@ -423,7 +449,6 @@ class BiliBiliCheckIn:
         print("=" * 40)
         print(f"账号信息: {uname}")
         print(f"漫画签到: {manga_msg}")
-        print(f"直播签到: {live_msg}")
         print(f"大会员权益: {privilege_msg}")
         print(f"观看任务: {report_msg}")
         print(f"分享任务: {share_msg}")
